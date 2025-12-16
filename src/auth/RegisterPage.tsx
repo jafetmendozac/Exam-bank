@@ -10,6 +10,7 @@ import {
   Divider,
   Alert,
 } from "@mui/material";
+import MenuBookIcon from "@mui/icons-material/MenuBook";
 import GoogleIcon from "@mui/icons-material/Google";
 import { useState } from "react";
 
@@ -19,6 +20,7 @@ import {
   GoogleAuthProvider,
 } from "firebase/auth";
 import type { UserCredential } from "firebase/auth"
+import { Link as RouterLink } from "react-router-dom";
 
 import { isUnitruEmail } from "../shared/utils/isUnitruEmail";
 import { auth } from "../app/firebase";
@@ -75,9 +77,12 @@ const Register = () => {
       <Container maxWidth="sm">
         <Card sx={{ p: 4 }}>
           <CardContent>
-            <Typography variant="h5" textAlign="center" mb={3}>
-              Crear cuenta
-            </Typography>
+            <Box textAlign="center" mb={4}>
+              <MenuBookIcon color="primary" sx={{ fontSize: 48 }} />
+              <Typography variant="h5" fontWeight="bold">
+                Crear Cuenta
+              </Typography>
+            </Box>
 
             {error && <Alert severity="error">{error}</Alert>}
 
@@ -121,6 +126,14 @@ const Register = () => {
             >
               Registrarse con Google
             </Button>
+
+            <Box textAlign="center" mt={2}>
+              <RouterLink to="/login" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <Typography variant="body2" color="primary">
+                  Ya te registraste ? Inicia Sesión ahora
+                </Typography>
+              </RouterLink>
+            </Box>
           </CardContent>
         </Card>
       </Container>

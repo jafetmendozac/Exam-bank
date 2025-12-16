@@ -13,6 +13,7 @@ import {
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import GoogleIcon from "@mui/icons-material/Google";
 import { useState } from "react";
+import { Link as RouterLink } from "react-router-dom";
 
 import {
   signInWithEmailAndPassword,
@@ -131,6 +132,14 @@ const Login = () => {
             >
               Iniciar sesión con Google
             </Button>
+
+            <Box textAlign="center" mt={2}>
+              <RouterLink to="/register" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <Typography variant="body2" color="primary">
+                  Aún no te registras ? Registrate ahora
+                </Typography>
+              </RouterLink>
+            </Box>
           </CardContent>
         </Card>
       </Container>
