@@ -1,10 +1,12 @@
 import { createBrowserRouter } from "react-router-dom";
-import LoginPage from "@/auth/LoginPage";
-import RegisterPage from "@/auth/RegisterPage";
-import ExamsPage from "@/exams/pages/ExamsPage";
-import ExamDetailPage from "@/exams/pages/ExamDetailPage";
-import CompleteProfilePage from "@/auth/CompleteProfilePage";
-import ProtectedRoute from "@/auth/ProtectedRoute";
+import LoginPage from "../auth/LoginPage";
+import RegisterPage from "../auth/RegisterPage";
+// import LoginPage from "@/auth/LoginPage";
+// import RegisterPage from "@/auth/RegisterPage";
+// import ExamsPage from "@/exams/pages/ExamsPage";
+// import ExamDetailPage from "@/exams/pages/ExamDetailPage";
+// import CompleteProfilePage from "@/auth/CompleteProfilePage";
+// import ProtectedRoute from "@/auth/ProtectedRoute";
 
 export const router = createBrowserRouter([
   { path: "/", element: <LoginPage /> },
