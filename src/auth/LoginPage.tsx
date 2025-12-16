@@ -19,6 +19,7 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
+  signOut,
 } from "firebase/auth";
 import type { UserCredential } from "firebase/auth"
 
@@ -42,7 +43,19 @@ const Login = () => {
 
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const cred = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+      if (!cred.user.emailVerified) {
+        await signOut(auth);
+        setError("Debes verificar tu correo institucional");
+        return;
+      }
+      // navigate("/exams") (cuando exista)
+
     } catch {
       setError("Correo o contraseña incorrectos");
     } finally {
@@ -63,7 +76,9 @@ const Login = () => {
       if (!userEmail || !isUnitruEmail(userEmail)) {
         await result.user.delete();
         setError("Solo se permiten correos @unitru.edu.pe");
+        return;
       }
+      
     } catch {
       setError("Error al iniciar sesión con Google");
     } finally {

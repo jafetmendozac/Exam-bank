@@ -13,11 +13,14 @@ import {
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import GoogleIcon from "@mui/icons-material/Google";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import {
   createUserWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
+  sendEmailVerification,
+  signOut,
 } from "firebase/auth";
 import type { UserCredential } from "firebase/auth"
 import { Link as RouterLink } from "react-router-dom";
@@ -27,6 +30,7 @@ import { auth } from "../app/firebase";
 
 
 const Register = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -43,7 +47,20 @@ const Register = () => {
 
     setLoading(true);
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      const cred = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+      await sendEmailVerification(cred.user);
+      await signOut(auth);
+
+      alert(
+        "Te enviamos un correo de verificación. Revisa tu correo institucional."
+      );
+      navigate('/login');
+    
     } catch {
       setError("Error al crear la cuenta");
     } finally {
@@ -64,7 +81,10 @@ const Register = () => {
       if (!userEmail || !isUnitruEmail(userEmail)) {
         await result.user.delete();
         setError("Solo se permiten correos @unitru.edu.pe");
+        return;
       }
+      navigate('/login');
+
     } catch {
       setError("Error al registrarse con Google");
     } finally {
