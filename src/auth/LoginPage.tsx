@@ -13,7 +13,7 @@ import {
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import GoogleIcon from "@mui/icons-material/Google";
 import { useState } from "react";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 
 import {
   signInWithEmailAndPassword,
@@ -27,6 +27,7 @@ import { auth } from "../app/firebase";
 import { isUnitruEmail } from "../shared/utils/isUnitruEmail";
 
 const Login = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -54,7 +55,7 @@ const Login = () => {
         setError("Debes verificar tu correo institucional");
         return;
       }
-      // navigate("/exams") (cuando exista)
+      navigate("/exams")
 
     } catch {
       setError("Correo o contraseña incorrectos");
