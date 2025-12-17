@@ -8,6 +8,7 @@ import {
   Alert,
 } from "@mui/material";
 import { reload, sendEmailVerification } from "firebase/auth";
+// import { reload, sendEmailVerification } from "firebase/auth";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./context/useAuth";
@@ -23,17 +24,29 @@ const VerifyEmailPage = () => {
     if (!user) return;
 
     const interval = setInterval(async () => {
-      await reload(user);
+      try {
+        await reload(user);
+
+        if (user.emailVerified) {
+          // 🔑 refresca token para Firestore / AuthContext
+          await user.getIdToken(true);
+
+          clearInterval(interval);
+          navigate("/login", { replace: true });
+        }
+      } catch (err) {
+        console.error(err);
+      }
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [user]);
-
-  useEffect(() => {
-    if (user?.emailVerified) {
-      navigate("/login", { replace: true });
-    }
   }, [user, navigate]);
+
+  // useEffect(() => {
+  //   if (user?.emailVerified) {
+  //     navigate("/login", { replace: true });
+  //   }
+  // }, [user, navigate]);
 
   const handleResend = async () => {
     if (!user) return;
