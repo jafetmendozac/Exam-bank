@@ -19,8 +19,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
-  sendEmailVerification,
-  signOut,
+  sendEmailVerification
 } from "firebase/auth";
 import type { UserCredential } from "firebase/auth"
 import { Link as RouterLink } from "react-router-dom";
@@ -54,7 +53,6 @@ const Register = () => {
       );
 
       await sendEmailVerification(cred.user);
-      await signOut(auth);
 
       alert(
         "Te enviamos un correo de verificación. Revisa tu correo institucional."
