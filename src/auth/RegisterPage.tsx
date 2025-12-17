@@ -59,7 +59,8 @@ const Register = () => {
       alert(
         "Te enviamos un correo de verificación. Revisa tu correo institucional."
       );
-      navigate('/login');
+      navigate("/verify-email");
+      // navigate('/login');
     
     } catch {
       setError("Error al crear la cuenta");

@@ -3,6 +3,7 @@ import LoginPage from "../auth/LoginPage";
 import RegisterPage from "../auth/RegisterPage";
 import ProtectedRoute from "@/auth/ProtectedRoute";
 import ExamsPage from "@/exams/pages/ExamsPage";
+import VerifyEmailPage from "@/auth/VerifyEmailPage";
 // import LoginPage from "@/auth/LoginPage";
 // import RegisterPage from "@/auth/RegisterPage";
 // import ExamsPage from "@/exams/pages/ExamsPage";
@@ -14,6 +15,7 @@ export const router = createBrowserRouter([
   { path: "/", element: <LoginPage /> },
   { path: "/login", element: <LoginPage /> },
   { path: "/register", element: <RegisterPage /> },
+  { path: "/verify-email", element: <VerifyEmailPage /> },
 
 
   {
