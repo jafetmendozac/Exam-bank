@@ -1,6 +1,8 @@
 import { createBrowserRouter } from "react-router-dom";
 import LoginPage from "../auth/LoginPage";
 import RegisterPage from "../auth/RegisterPage";
+import ProtectedRoute from "@/auth/ProtectedRoute";
+import ExamsPage from "@/exams/pages/ExamsPage";
 // import LoginPage from "@/auth/LoginPage";
 // import RegisterPage from "@/auth/RegisterPage";
 // import ExamsPage from "@/exams/pages/ExamsPage";
@@ -12,6 +14,17 @@ export const router = createBrowserRouter([
   { path: "/", element: <LoginPage /> },
   { path: "/login", element: <LoginPage /> },
   { path: "/register", element: <RegisterPage /> },
+
+
+  {
+    element: <ProtectedRoute />,
+    children: [
+      { path: "/exams", element: <ExamsPage /> },
+    ],
+  },
+
+  { path: "*", element: <LoginPage /> },
+
 
   // {
   //   element: <ProtectedRoute />,
