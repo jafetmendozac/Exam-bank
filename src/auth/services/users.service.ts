@@ -17,6 +17,7 @@ export const createUserIfNotExists = async (user: User) => {
     displayName: user.displayName ?? "",
     photoURL: user.photoURL ?? "",
     provider: user.providerData[0]?.providerId ?? "password",
+    role: "alumno",
     createdAt: serverTimestamp(),
   });
 };

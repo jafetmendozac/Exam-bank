@@ -4,9 +4,11 @@ import RegisterPage from "../auth/RegisterPage";
 import ProtectedRoute from "@/auth/ProtectedRoute";
 import ExamsPage from "@/exams/pages/ExamsPage";
 import VerifyEmailPage from "@/auth/VerifyEmailPage";
-
+import AdminRoute from "@/auth/AdminRoute";
+import AdminPage from "@/exams/pages/AdminPage";
 // import ExamDetailPage from "@/exams/pages/ExamDetailPage";
 // import CompleteProfilePage from "@/auth/CompleteProfilePage";
+
 
 export const router = createBrowserRouter([
   { path: "/", element: <LoginPage /> },
@@ -19,6 +21,13 @@ export const router = createBrowserRouter([
     element: <ProtectedRoute />,
     children: [
       { path: "/exams", element: <ExamsPage /> },
+    ],
+  },
+
+  {
+    element: <AdminRoute />,
+    children: [
+      { path: "/upload", element: <AdminPage /> },
     ],
   },
 
