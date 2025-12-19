@@ -6,6 +6,9 @@ import ExamsPage from "@/exams/pages/ExamsPage";
 import VerifyEmailPage from "@/auth/VerifyEmailPage";
 import AdminRoute from "@/auth/AdminRoute";
 import AdminPage from "@/exams/pages/AdminPage";
+import { AppLayout } from "@/shared/components/AppLayout";
+import UploadExamForm from "@/exams/pages/UploadExamForm";
+import ExamsSearchPage from "@/exams/pages/ExamsSearchPage";
 // import ExamDetailPage from "@/exams/pages/ExamDetailPage";
 // import CompleteProfilePage from "@/auth/CompleteProfilePage";
 
@@ -16,20 +19,41 @@ export const router = createBrowserRouter([
   { path: "/register", element: <RegisterPage /> },
   { path: "/verify-email", element: <VerifyEmailPage /> },
 
-
   {
     element: <ProtectedRoute />,
     children: [
-      { path: "/exams", element: <ExamsPage /> },
+      {
+        element: <AppLayout />,
+        children: [
+          { path: "/exams", element: <ExamsPage /> },
+          { path: "/search-exams", element: <ExamsSearchPage /> },
+
+          {
+            element: <AdminRoute />,
+            children: [
+              { path: "/upload", element: <UploadExamForm /> },
+              { path: "/admin", element: <AdminPage /> },
+            ],
+          },
+        ],
+      },
     ],
   },
 
-  {
-    element: <AdminRoute />,
-    children: [
-      { path: "/upload", element: <AdminPage /> },
-    ],
-  },
+
+  // {
+  //   element: <ProtectedRoute />,
+  //   children: [
+  //     { path: "/exams", element: <ExamsPage /> },
+  //   ],
+  // },
+
+  // {
+  //   element: <AdminRoute />,
+  //   children: [
+  //     { path: "/upload", element: <AdminPage /> },
+  //   ],
+  // },
 
   { path: "*", element: <LoginPage /> },
 
