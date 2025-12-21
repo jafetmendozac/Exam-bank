@@ -6,11 +6,9 @@ import ExamsPage from "@/exams/pages/ExamsPage";
 import VerifyEmailPage from "@/auth/VerifyEmailPage";
 import AdminRoute from "@/auth/AdminRoute";
 import AdminPage from "@/exams/pages/AdminPage";
-import { AppLayout } from "@/shared/components/AppLayout";
+import AppLayout from "@/shared/components/AppLayout";
 import UploadExamForm from "@/exams/pages/UploadExamForm";
 import ExamsSearchPage from "@/exams/pages/ExamsSearchPage";
-// import ExamDetailPage from "@/exams/pages/ExamDetailPage";
-// import CompleteProfilePage from "@/auth/CompleteProfilePage";
 
 
 export const router = createBrowserRouter([
@@ -40,32 +38,5 @@ export const router = createBrowserRouter([
     ],
   },
 
-
-  // {
-  //   element: <ProtectedRoute />,
-  //   children: [
-  //     { path: "/exams", element: <ExamsPage /> },
-  //   ],
-  // },
-
-  // {
-  //   element: <AdminRoute />,
-  //   children: [
-  //     { path: "/upload", element: <AdminPage /> },
-  //   ],
-  // },
-
   { path: "*", element: <LoginPage /> },
-
-
-  // {
-  //   element: <ProtectedRoute />,
-  //   children: [
-  //     { path: "/complete-profile", element: <CompleteProfilePage /> },
-  //     { path: "/exams", element: <ExamsPage /> },
-  //     { path: "/exams/:id", element: <ExamDetailPage /> },
-  //     { path: "/upload", element: <UploadExamPage /> },
-  //     { path: "/profile", element: <ProfilePage /> },
-  //   ],
-  // },
 ]);
