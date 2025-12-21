@@ -1,123 +1,5 @@
-// import {
-//   AppBar,
-//   Toolbar,
-//   Container,
-//   Box,
-//   Typography,
-//   Button,
-//   IconButton,
-//   Avatar,
-// } from "@mui/material";
-// import MenuIcon from "@mui/icons-material/Menu";
-// import LogoutIcon from "@mui/icons-material/Logout";
-// import { Outlet, Link, useNavigate } from "react-router-dom";
-// import { signOut } from "firebase/auth";
-// import { auth } from "@/app/firebase";
-// import { useAuth } from "@/auth/context/useAuth";
-
-// export const AppLayout = () => {
-//   const { user, role } = useAuth();
-//   const navigate = useNavigate();
-
-//   const logout = async () => {
-//     await signOut(auth);
-//     navigate("/login");
-//   };
-
-//   return (
-//     <>
-//       <AppBar
-//         position="sticky"
-//         color="default"
-//         elevation={1}
-//         sx={{ borderBottom: 1, borderColor: "divider" }}
-//       >
-//         <Container maxWidth="lg">
-//           <Toolbar disableGutters sx={{ height: 64 }}>
-//             {/* LEFT — LOGO */}
-//             <Box display="flex" alignItems="center" flexGrow={1}>
-//               <Box
-//                 sx={{
-//                   width: 32,
-//                   height: 32,
-//                   bgcolor: "primary.main",
-//                   borderRadius: 1,
-//                   display: "flex",
-//                   alignItems: "center",
-//                   justifyContent: "center",
-//                   mr: 1.5,
-//                 }}
-//               >
-//                 📘
-//               </Box>
-//               <Typography
-//                 variant="h6"
-//                 component={Link}
-//                 to="/exams"
-//                 sx={{
-//                   textDecoration: "none",
-//                   color: "text.primary",
-//                   fontWeight: 600,
-//                 }}
-//               >
-//                 ExamHub
-//               </Typography>
-//             </Box>
-
-//             <Box
-//               sx={{
-//                 display: { xs: "none", md: "flex" },
-//                 gap: 1,
-//                 mr: 4,
-//               }}
-//             >
-//               <Button component={Link} to="/exams">
-//                 Dashboard
-//               </Button>
-
-//               <Button component={Link} to="/exams">
-//                 Exámenes
-//               </Button>
-
-//               {role === "admin" && (
-//                 <Button component={Link} to="/upload">
-//                   Subir Examen
-//                 </Button>
-//               )}
-
-//               {role === "admin" && (
-//                 <Button component={Link} to="/admin">
-//                   Admin Panel
-//                 </Button>
-//               )}
-//             </Box>
-
-//             <Box display="flex" alignItems="center" gap={1}>
-//               <Avatar sx={{ width: 32, height: 32 }}>
-//                 {user?.email?.[0].toUpperCase()}
-//               </Avatar>
-
-//               <IconButton color="error" onClick={logout}>
-//                 <LogoutIcon />
-//               </IconButton>
-
-//               <IconButton sx={{ display: { md: "none" } }}>
-//                 <MenuIcon />
-//               </IconButton>
-//             </Box>
-//           </Toolbar>
-//         </Container>
-//       </AppBar>
-
-//       <Outlet />
-//     </>
-//   );
-// };
-
-
-
 import type React from "react"
-import { useState } from "react"
+import { useState, type ReactNode } from "react"
 import { useNavigate, useLocation, Outlet } from "react-router-dom"
 
 import {
@@ -151,8 +33,8 @@ import {
   Logout,
   Settings,
   Person,
-  // Brightness4,
-  // Brightness7,
+  Brightness4,
+  Brightness7,
   ReportProblem,
   Favorite,
   CloudUpload,
@@ -160,20 +42,33 @@ import {
   HelpOutline,
   Notifications,
 } from "@mui/icons-material"
+import { useColorMode } from "@/app/theme/ColorModeContext"
+import { auth } from "@/app/firebase"
+import { signOut } from "firebase/auth"
+import { useAuth } from "@/auth/context/useAuth"
 
-// import { useColorMode } from "@/providers/ColorModeProvider"
+
+export interface MenuItem {
+  text: string
+  icon: ReactNode
+  path: string
+  badge?: number
+}
 
 const drawerWidth = 260
+
 
 export default function AppLayout() {
   const navigate = useNavigate()
   const location = useLocation()
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("md"))
-  // const { toggleColorMode, mode } = useColorMode()
+  const { toggleColorMode, mode } = useColorMode()
 
   const [mobileOpen, setMobileOpen] = useState(false)
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+
+  const { role } = useAuth()
 
   const notificationCount = 2
 
@@ -186,23 +81,57 @@ export default function AppLayout() {
     navigate("/profile")
   }
 
-  const handleLogout = () => {
-    handleMenuClose()
-    navigate("/login")
+  const handleLogout = async () => {
+    try {
+      await signOut(auth)
+      handleMenuClose()
+      navigate("/login", { replace: true })
+    } catch (error) {
+      console.error("Error signing out:", error)
+    }
   }
 
-  const menuItems = [
-    { text: "Dashboard", icon: <Dashboard />, path: "/dashboard" },
-    { text: "Browse Exams", icon: <Description />, path: "/exams" },
-    { text: "Upload Exam", icon: <Upload />, path: "/upload" },
-    { text: "My Exams", icon: <CloudUpload />, path: "/my-exams" },
-    { text: "Favorites", icon: <Favorite />, path: "/favorites" },
-    { text: "Report Issue", icon: <ReportProblem />, path: "/report" },
-    { text: "Help & FAQ", icon: <HelpOutline />, path: "/help" },
-    { text: "Notifications", icon: <Notifications />, path: "/notifications", badge: notificationCount },
-    { text: "Admin Panel", icon: <AdminPanelSettings />, path: "/admin" },
-    { text: "Review Exams", icon: <RateReview />, path: "/admin/review-exams" },
-  ]
+
+  const commonMenuItems: MenuItem[] = [
+  { text: "Dashboard", icon: <Dashboard />, path: "/dashboard" },
+  { text: "Browse Exams", icon: <Description />, path: "/exams" },
+  { text: "Favorites", icon: <Favorite />, path: "/favorites" },
+  { text: "Notifications", icon: <Notifications />, path: "/notifications", badge: notificationCount },
+  { text: "Help & FAQ", icon: <HelpOutline />, path: "/help" },
+
+]
+
+const userMenuItems: MenuItem[] = [
+  { text: "Upload Exam", icon: <Upload />, path: "/upload" },
+  { text: "My Exams", icon: <CloudUpload />, path: "/my-exams" },
+  { text: "Report Issue", icon: <ReportProblem />, path: "/report" }
+]
+
+const adminMenuItems: MenuItem[] = [
+  { text: "Admin Panel", icon: <AdminPanelSettings />, path: "/admin" },
+  { text: "Review Exams", icon: <RateReview />, path: "/admin/review-exams" },
+]
+
+
+  // const menuItems = [
+  //   { text: "Dashboard", icon: <Dashboard />, path: "/dashboard" },
+  //   { text: "Browse Exams", icon: <Description />, path: "/exams" },
+  //   { text: "Upload Exam", icon: <Upload />, path: "/upload" },
+  //   { text: "My Exams", icon: <CloudUpload />, path: "/my-exams" },
+  //   { text: "Favorites", icon: <Favorite />, path: "/favorites" },
+  //   { text: "Report Issue", icon: <ReportProblem />, path: "/report" },
+  //   { text: "Help & FAQ", icon: <HelpOutline />, path: "/help" },
+  //   { text: "Notifications", icon: <Notifications />, path: "/notifications", badge: notificationCount },
+  //   { text: "Admin Panel", icon: <AdminPanelSettings />, path: "/admin" },
+  //   { text: "Review Exams", icon: <RateReview />, path: "/admin/review-exams" },
+  // ]
+
+  const menuItems: MenuItem[] = [
+  ...commonMenuItems,
+  ...(role === "alumno" || role === "admin" ? userMenuItems : []),
+  ...(role === "admin" ? adminMenuItems : []),
+]
+
 
   const drawer = (
     <Box>
@@ -253,7 +182,7 @@ export default function AppLayout() {
 
   return (
     <Box sx={{ display: "flex" }}>
-      {/* APP BAR */}
+
       <AppBar
         position="fixed"
         sx={{
@@ -277,9 +206,9 @@ export default function AppLayout() {
             </Badge>
           </IconButton>
 
-          {/* <IconButton onClick={toggleColorMode} sx={{ mr: 1 }}>
+          <IconButton onClick={toggleColorMode} sx={{ mr: 1 }}>
             {mode === "dark" ? <Brightness7 /> : <Brightness4 />}
-          </IconButton> */}
+          </IconButton>
 
           <IconButton onClick={handleMenuOpen}>
             <Avatar sx={{ width: 36, height: 36, bgcolor: "primary.main" }}>
@@ -320,7 +249,6 @@ export default function AppLayout() {
         </Toolbar>
       </AppBar>
 
-      {/* DRAWER */}
       <Box component="nav" sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}>
         <Drawer
           variant="temporary"
@@ -347,7 +275,6 @@ export default function AppLayout() {
         </Drawer>
       </Box>
 
-      {/* MAIN CONTENT */}
       <Box
         component="main"
         sx={{
