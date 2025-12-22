@@ -8,11 +8,13 @@ import AdminRoute from "@/auth/AdminRoute";
 import AdminPage from "@/exams/pages/AdminPage";
 import AppLayout from "@/shared/components/AppLayout";
 import UploadExamForm from "@/exams/pages/UploadExamForm";
-import ExamsSearchPage from "@/exams/pages/ExamsSearchPage";
+import DashboardPage from "@/exams/pages/DashboardPage";
+import HelpPage from "@/exams/pages/HelpPage";
+import LandingPage from "@/exams/pages/LandingPage";
 
 
 export const router = createBrowserRouter([
-  { path: "/", element: <LoginPage /> },
+  { path: "/", element: <LandingPage /> },
   { path: "/login", element: <LoginPage /> },
   { path: "/register", element: <RegisterPage /> },
   { path: "/verify-email", element: <VerifyEmailPage /> },
@@ -23,8 +25,10 @@ export const router = createBrowserRouter([
       {
         element: <AppLayout />,
         children: [
+          { path: "/dashboard", element: <DashboardPage /> },
           { path: "/exams", element: <ExamsPage /> },
-          { path: "/search-exams", element: <ExamsSearchPage /> },
+          { path: "/help", element: <HelpPage />  },
+          
 
           {
             element: <AdminRoute />,
