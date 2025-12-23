@@ -93,44 +93,28 @@ export default function AppLayout() {
 
 
   const commonMenuItems: MenuItem[] = [
-  { text: "Dashboard", icon: <Dashboard />, path: "/dashboard" },
-  { text: "Browse Exams", icon: <Description />, path: "/exams" },
-  { text: "Favorites", icon: <Favorite />, path: "/favorites" },
-  { text: "Notifications", icon: <Notifications />, path: "/notifications", badge: notificationCount },
-  { text: "Help & FAQ", icon: <HelpOutline />, path: "/help" },
+    { text: "Menu", icon: <Dashboard />, path: "/dashboard" },
+    { text: "Examenes", icon: <Description />, path: "/exams" },
+    { text: "Favoritos", icon: <Favorite />, path: "/favorites" },
+    { text: "Notificaciones", icon: <Notifications />, path: "/notifications", badge: notificationCount },
+    { text: "Ayuda", icon: <HelpOutline />, path: "/help" },
+  ]
 
-]
+  const userMenuItems: MenuItem[] = [
+    { text: "Subir Examen", icon: <Upload />, path: "/upload" },
+    { text: "Mis Examenes", icon: <CloudUpload />, path: "/my-exams" },
+    { text: "Reportar", icon: <ReportProblem />, path: "/report" }
+  ]
 
-const userMenuItems: MenuItem[] = [
-  { text: "Upload Exam", icon: <Upload />, path: "/upload" },
-  { text: "My Exams", icon: <CloudUpload />, path: "/my-exams" },
-  { text: "Report Issue", icon: <ReportProblem />, path: "/report" }
-]
-
-const adminMenuItems: MenuItem[] = [
-  { text: "Admin Panel", icon: <AdminPanelSettings />, path: "/admin" },
-  { text: "Review Exams", icon: <RateReview />, path: "/admin/review-exams" },
-]
-
-
-  // const menuItems = [
-  //   { text: "Dashboard", icon: <Dashboard />, path: "/dashboard" },
-  //   { text: "Browse Exams", icon: <Description />, path: "/exams" },
-  //   { text: "Upload Exam", icon: <Upload />, path: "/upload" },
-  //   { text: "My Exams", icon: <CloudUpload />, path: "/my-exams" },
-  //   { text: "Favorites", icon: <Favorite />, path: "/favorites" },
-  //   { text: "Report Issue", icon: <ReportProblem />, path: "/report" },
-  //   { text: "Help & FAQ", icon: <HelpOutline />, path: "/help" },
-  //   { text: "Notifications", icon: <Notifications />, path: "/notifications", badge: notificationCount },
-  //   { text: "Admin Panel", icon: <AdminPanelSettings />, path: "/admin" },
-  //   { text: "Review Exams", icon: <RateReview />, path: "/admin/review-exams" },
-  // ]
-
+  const adminMenuItems: MenuItem[] = [
+    { text: "Panel Administrador", icon: <AdminPanelSettings />, path: "/admin" },
+    { text: "Revisar Examenes", icon: <RateReview />, path: "/admin/review-exams" },
+  ]
   const menuItems: MenuItem[] = [
-  ...commonMenuItems,
-  ...(role === "alumno" || role === "admin" ? userMenuItems : []),
-  ...(role === "admin" ? adminMenuItems : []),
-]
+    ...commonMenuItems,
+    ...(role === "alumno" || role === "admin" ? userMenuItems : []),
+    ...(role === "admin" ? adminMenuItems : []),
+  ]
 
 
   const drawer = (

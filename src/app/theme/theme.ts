@@ -1,26 +1,3 @@
-// import { createTheme } from "@mui/material/styles"
-
-// export const getTheme = (mode: "light" | "dark") =>
-//   createTheme({
-//     palette: {
-//       mode,
-//       primary: {
-//         main: "#2563eb", // azul profesional
-//       },
-//       background: {
-//         default: mode === "light" ? "#f8fafc" : "#0f172a",
-//         paper: mode === "light" ? "#ffffff" : "#020617",
-//       },
-//     },
-//     shape: {
-//       borderRadius: 12,
-//     },
-//     typography: {
-//       fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
-//     },
-//   })
-
-
 import { createTheme } from "@mui/material/styles"
 
 export const getTheme = (
@@ -36,12 +13,17 @@ export const getTheme = (
       },
 
       secondary: {
-        main: "#16a34a",
+        main: role === "admin" ? "#f97316" : "#10b981",
       },
 
       background: {
-        default: mode === "light" ? "#f8fafc" : "#020617",
-        paper: mode === "light" ? "#ffffff" : "#020617",
+        default: mode === "dark" ? "#020617" : "#f8fafc",
+        paper: mode === "dark" ? "#020617" : "#ffffff",
+      },
+
+      text: {
+        primary: mode === "dark" ? "#e5e7eb" : "#020617",
+        secondary: mode === "dark" ? "#94a3b8" : "#475569",
       },
     },
 

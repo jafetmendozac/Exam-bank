@@ -8,7 +8,7 @@ const AdminRoute = () => {
 
   return role === "admin"
     ? <Outlet />
-    : <Navigate to="/exams" replace />;
+    : <Navigate to="/unauthorized" replace />;
 };
 
 export default AdminRoute;

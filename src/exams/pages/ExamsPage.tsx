@@ -18,6 +18,7 @@ import {
   TableCell,
   TableBody,
   Stack,
+  Container,
 } from "@mui/material";
 import { useState, useMemo } from "react";
 import Header from "../components/Header";
@@ -72,7 +73,9 @@ export default function ExamsPage() {
   };
 
   return (
-    <Box maxWidth="lg" mx="auto" px={2} py={4}>
+    // <Box maxWidth="lg" mx="auto" px={2} py={4}>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+
 
       <Header 
         title="Búsqueda de Exámenes" 
@@ -242,6 +245,6 @@ export default function ExamsPage() {
           </Typography>
         </Box>
       )}
-    </Box>
+    </Container>
   );
 }

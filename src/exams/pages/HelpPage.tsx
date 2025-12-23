@@ -33,7 +33,7 @@ export default function HelpPage() {
     }
 
   return (
-    <Container maxWidth="lg">
+    <Container maxWidth="lg" sx={{ py: 4 }}>
 
       <Header 
         title="Ayuda y Preguntas Frecuentes" 

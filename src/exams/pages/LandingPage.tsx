@@ -28,6 +28,8 @@ export default function LandingPage() {
   const navigate = useNavigate()
   const theme = useTheme()
 
+  const isDark = theme.palette.mode === "dark"
+
   const features = [
     {
       icon: <Search sx={{ fontSize: 40 }} />,
@@ -76,14 +78,24 @@ export default function LandingPage() {
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
-      {/* HERO */}
+
       <Box
         sx={{
-          background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-          color: "white",
-          py: { xs: 8, md: 12 },
+          minHeight: "90vh",
+          display: "flex",
+          alignItems: "center",
+          px: { xs: 3, md: 8 },
+          
+          background: isDark
+            ? theme.palette.background.default
+            : `linear-gradient(135deg,
+                ${theme.palette.primary.main},
+                ${theme.palette.secondary.main}
+              )`,
+          color: "white"
         }}
-      >
+        >
+          
         <Container maxWidth="lg">
           <Grid container spacing={4} alignItems="center">
             <Grid size={{ xs: 12, md: 7 }}>
