@@ -33,7 +33,6 @@ import {
   School,
   CalendarToday,
 } from "@mui/icons-material"
-import { useAuth } from "@/auth/context/useAuth"
 
 interface MyExam {
   id: string
@@ -50,7 +49,6 @@ interface MyExam {
 }
 
 export default function MyExamsPage() {
-  const { user } = useAuth()
   const [searchQuery, setSearchQuery] = useState("")
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" as "success" | "error" | "info" | "warning" })
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; examId: string | null }>({
@@ -129,7 +127,7 @@ export default function MyExamsPage() {
     }
   }
 
-  const handleEdit = (id: string) => {
+  const handleEdit = (_id: string) => {
     // TODO: Implementar edición
     setSnackbar({ open: true, message: "Funcionalidad de edición próximamente", severity: "info" })
   }
