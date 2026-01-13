@@ -18,6 +18,7 @@ import FavoritesPage from "@/exams/pages/FavoritesPage";
 import NotificationsPage from "@/exams/pages/NotificationsPage";
 import ProfilePage from "@/exams/pages/ProfilePage";
 import ReportPage from "@/exams/pages/ReportPage";
+import MyExamsPage from "@/exams/pages/MyExamsPage";
 
 
 export const router = createBrowserRouter([
@@ -46,6 +47,7 @@ export const router = createBrowserRouter([
           { path: "/notifications", element: <NotificationsPage /> },
           { path: "/profile", element: <ProfilePage /> },
           { path: "/report", element: <ReportPage /> },
+          { path: "/my-exams", element: <MyExamsPage /> },
 
           
           {
