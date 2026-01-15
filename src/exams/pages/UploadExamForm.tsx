@@ -7,10 +7,20 @@ import {
   MenuItem,
   TextField,
   Typography,
+  CircularProgress,
+  Alert,
 } from "@mui/material";
 import { useState } from "react";
+import { useAuth } from "@/auth/context/useAuth";
+import { useNavigate } from "react-router-dom";
+import { uploadExam } from "../services/exams.service";
 
 export default function UploadExamForm() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
   const [otroProfesor, setOtroProfesor] = useState(false);
   const [exam, setExam] = useState({
     unidad: "",
@@ -38,13 +48,78 @@ export default function UploadExamForm() {
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
-      setExam({ ...exam, file: e.target.files[0] });
+      const file = e.target.files[0];
+      // Validar que sea PDF
+      if (file.type !== "application/pdf") {
+        setError("Solo se permiten archivos PDF");
+        return;
+      }
+      // Validar tamaño (máximo 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        setError("El archivo no debe exceder 10MB");
+        return;
+      }
+      setExam({ ...exam, file });
+      setError("");
     }
   };
 
-  const submitExam = (e: React.FormEvent) => {
+  const submitExam = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(exam);
+    setError("");
+    setSuccess(false);
+
+    // Validar que todos los campos estén llenos
+    if (!exam.unidad || !exam.semestre || !exam.anio || !exam.seccion || !exam.profesor || !exam.ciclo || !exam.curso) {
+      setError("Por favor completa todos los campos");
+      return;
+    }
+
+    if (!exam.file) {
+      setError("Por favor selecciona un archivo PDF");
+      return;
+    }
+
+    if (!user) {
+      setError("Debes estar autenticado para subir exámenes");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await uploadExam(user, {
+        unidad: exam.unidad,
+        semestre: exam.semestre,
+        anio: exam.anio,
+        seccion: exam.seccion,
+        profesor: exam.profesor,
+        ciclo: exam.ciclo,
+        curso: exam.curso,
+        file: exam.file,
+      });
+
+      setSuccess(true);
+      // Limpiar formulario
+      setExam({
+        unidad: "",
+        semestre: "",
+        anio: "",
+        seccion: "",
+        profesor: "",
+        ciclo: "",
+        curso: "",
+        file: null,
+      });
+      
+      // Redirigir a mis exámenes después de 2 segundos
+      setTimeout(() => {
+        navigate("/my-exams");
+      }, 2000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al subir el examen. Intenta nuevamente.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -62,6 +137,18 @@ export default function UploadExamForm() {
           <Typography variant="h5" fontWeight={600} mb={3}>
             Subir Examen
           </Typography>
+
+          {error && (
+            <Alert severity="error" sx={{ mb: 3 }}>
+              {error}
+            </Alert>
+          )}
+
+          {success && (
+            <Alert severity="success" sx={{ mb: 3 }}>
+              ¡Examen subido exitosamente! Redirigiendo a Mis Exámenes...
+            </Alert>
+          )}
 
           {/* Unidad - Semestre */}
           <Grid container spacing={3}>
@@ -200,9 +287,14 @@ export default function UploadExamForm() {
             {/* Archivo */}
             <Grid size={{ xs: 12 }}>
               <Button component="label" variant="outlined" fullWidth>
-                Subir documento
-                <input hidden type="file" onChange={handleFile} />
+                {exam.file ? exam.file.name : "Subir documento PDF"}
+                <input hidden type="file" accept="application/pdf" onChange={handleFile} />
               </Button>
+              {exam.file && (
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
+                  Archivo seleccionado: {exam.file.name} ({(exam.file.size / 1024 / 1024).toFixed(2)} MB)
+                </Typography>
+              )}
             </Grid>
 
             {/* Submit */}
@@ -212,8 +304,9 @@ export default function UploadExamForm() {
                 fullWidth
                 variant="contained"
                 size="large"
+                disabled={loading || success}
               >
-                Subir Examen
+                {loading ? <CircularProgress size={24} /> : "Subir Examen"}
               </Button>
             </Grid>
           </Grid>
