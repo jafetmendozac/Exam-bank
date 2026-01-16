@@ -35,7 +35,7 @@ import {
   CalendarToday,
 } from "@mui/icons-material"
 import { useAuth } from "@/auth/context/useAuth"
-import { getUserExams, deleteExam } from "../services/exams.service"
+import { getUserExams, deleteExam, getExamDownloadURL } from "../services/exams.service"
 
 interface MyExam {
   id: string
@@ -51,6 +51,7 @@ interface MyExam {
   downloads: number
   fileUrl: string
   fileName: string
+  filePath: string
 }
 
 export default function MyExamsPage() {
@@ -58,10 +59,10 @@ export default function MyExamsPage() {
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" as "success" | "error" | "info" | "warning" })
-  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; examId: string | null; fileUrl: string | null }>({
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; examId: string | null; filePath: string | null }>({
     open: false,
     examId: null,
-    fileUrl: null,
+    filePath: null,
   })
 
   const [myExams, setMyExams] = useState<MyExam[]>([])
@@ -126,9 +127,9 @@ export default function MyExamsPage() {
   }
 
   const handleDelete = async () => {
-    if (deleteDialog.examId && deleteDialog.fileUrl) {
+    if (deleteDialog.examId && deleteDialog.filePath) {
       try {
-        await deleteExam(deleteDialog.examId, deleteDialog.fileUrl)
+        await deleteExam(deleteDialog.examId, deleteDialog.filePath)
         setMyExams((prev) => prev.filter((e) => e.id !== deleteDialog.examId))
         setSnackbar({ open: true, message: "Examen eliminado correctamente", severity: "success" })
       } catch (error) {
@@ -138,23 +139,45 @@ export default function MyExamsPage() {
           severity: "error",
         })
       } finally {
-        setDeleteDialog({ open: false, examId: null, fileUrl: null })
+        setDeleteDialog({ open: false, examId: null, filePath: null })
       }
     }
   }
 
-  const handleView = (fileUrl: string) => {
-    window.open(fileUrl, "_blank")
+  const handleView = async (filePath: string) => {
+    try {
+      // Regenerar URL de descarga para asegurar token válido
+      const fileUrl = await getExamDownloadURL(filePath)
+      window.open(fileUrl, "_blank")
+    } catch (error) {
+      console.error("Error al obtener URL del archivo:", error)
+      setSnackbar({
+        open: true,
+        message: "Error al abrir el archivo. Verifica que estés autenticado.",
+        severity: "error",
+      })
+    }
   }
 
-  const handleDownload = (fileUrl: string, fileName: string) => {
-    const link = document.createElement("a")
-    link.href = fileUrl
-    link.download = fileName
-    link.target = "_blank"
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+  const handleDownload = async (filePath: string, fileName: string) => {
+    try {
+      // Regenerar URL de descarga para asegurar token válido
+      const fileUrl = await getExamDownloadURL(filePath)
+      const link = document.createElement("a")
+      link.href = fileUrl
+      link.download = fileName
+      link.target = "_blank"
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    } catch (error) {
+      console.error("Error al descargar el archivo:", error)
+      setSnackbar({
+        open: true,
+        message: "Error al descargar el archivo. Verifica que estés autenticado.",
+        severity: "error",
+      })
+    }
   }
 
   const handleEdit = (_id: string) => {
@@ -329,10 +352,10 @@ export default function MyExamsPage() {
 
                 <CardActions sx={{ px: 2, pb: 2, justifyContent: "space-between" }}>
                   <Stack direction="row" spacing={1}>
-                    <Button size="small" startIcon={<Visibility />} onClick={() => handleView(exam.fileUrl)}>
+                    <Button size="small" startIcon={<Visibility />} onClick={() => handleView(exam.filePath)}>
                       Ver
                     </Button>
-                    <Button size="small" startIcon={<Download />} onClick={() => handleDownload(exam.fileUrl, exam.fileName)}>
+                    <Button size="small" startIcon={<Download />} onClick={() => handleDownload(exam.filePath, exam.fileName)}>
                       Descargar
                     </Button>
                   </Stack>
@@ -348,7 +371,7 @@ export default function MyExamsPage() {
                     <IconButton
                       size="small"
                       color="error"
-                      onClick={() => setDeleteDialog({ open: true, examId: exam.id, fileUrl: exam.fileUrl })}
+                      onClick={() => setDeleteDialog({ open: true, examId: exam.id, filePath: exam.filePath })}
                     >
                       <Delete fontSize="small" />
                     </IconButton>
@@ -363,7 +386,7 @@ export default function MyExamsPage() {
       {/* Delete Confirmation Dialog */}
       <Dialog
         open={deleteDialog.open}
-        onClose={() => setDeleteDialog({ open: false, examId: null, fileUrl: null })}
+        onClose={() => setDeleteDialog({ open: false, examId: null, filePath: null })}
       >
         <DialogTitle>¿Eliminar examen?</DialogTitle>
         <DialogContent>
@@ -372,7 +395,7 @@ export default function MyExamsPage() {
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteDialog({ open: false, examId: null, fileUrl: null })}>
+          <Button onClick={() => setDeleteDialog({ open: false, examId: null, filePath: null })}>
             Cancelar
           </Button>
           <Button onClick={handleDelete} color="error" variant="contained">
