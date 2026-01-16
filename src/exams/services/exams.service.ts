@@ -43,15 +43,72 @@ export interface Exam {
 }
 
 /**
+ * Obtiene todos los profesores únicos de los exámenes guardados
+ */
+export const getTeachers = async (): Promise<string[]> => {
+  try {
+    const q = query(collection(db, "exams"));
+    const querySnapshot = await getDocs(q);
+    const teachers = new Set<string>();
+
+    querySnapshot.docs.forEach((doc) => {
+      const data = doc.data();
+      if (data.teacher) {
+        teachers.add(data.teacher);
+      }
+    });
+
+    return Array.from(teachers).sort();
+  } catch (error) {
+    console.error("Error al obtener profesores:", error);
+    return [];
+  }
+};
+
+/**
+ * Obtiene todos los cursos únicos de los exámenes guardados
+ */
+export const getCourses = async (): Promise<string[]> => {
+  try {
+    const q = query(collection(db, "exams"));
+    const querySnapshot = await getDocs(q);
+    const courses = new Set<string>();
+
+    querySnapshot.docs.forEach((doc) => {
+      const data = doc.data();
+      if (data.course) {
+        courses.add(data.course);
+      }
+    });
+
+    return Array.from(courses).sort();
+  } catch (error) {
+    console.error("Error al obtener cursos:", error);
+    return [];
+  }
+};
+
+/**
  * Sube un examen a Firebase Storage y guarda los metadatos en Firestore
+ * Los archivos se organizan en subcarpetas: exams/unidad/seccion/año/curso/
  */
 export const uploadExam = async (user: User, examData: ExamData): Promise<string> => {
   if (!user.uid) {
     throw new Error("Usuario no autenticado");
   }
 
-  // 1. Subir archivo a Storage
-  const filePath = `exams/${user.uid}/${Date.now()}_${examData.file.name}`;
+  // Limpiar nombres para usar en paths (eliminar caracteres especiales)
+  const sanitizeForPath = (str: string) => {
+    return str.replace(/[^a-zA-Z0-9\s]/g, "").replace(/\s+/g, "_");
+  };
+
+  // 1. Subir archivo a Storage con estructura de carpetas: exams/unidad/seccion/año/curso/
+  const unidadPath = sanitizeForPath(examData.unidad);
+  const seccionPath = sanitizeForPath(examData.seccion);
+  const anioPath = sanitizeForPath(examData.anio);
+  const cursoPath = sanitizeForPath(examData.curso);
+
+  const filePath = `exams/${unidadPath}/${seccionPath}/${anioPath}/${cursoPath}/${Date.now()}_${examData.file.name}`;
   const fileRef = ref(storage, filePath);
   await uploadBytes(fileRef, examData.file);
   const fileUrl = await getDownloadURL(fileRef);

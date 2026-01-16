@@ -9,11 +9,12 @@ import {
   Typography,
   CircularProgress,
   Alert,
+  Autocomplete,
 } from "@mui/material";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/auth/context/useAuth";
 import { useNavigate } from "react-router-dom";
-import { uploadExam } from "../services/exams.service";
+import { uploadExam, getTeachers, getCourses } from "../services/exams.service";
 
 export default function UploadExamForm() {
   const { user } = useAuth();
@@ -21,7 +22,10 @@ export default function UploadExamForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  const [otroProfesor, setOtroProfesor] = useState(false);
+  const [teachers, setTeachers] = useState<string[]>([]);
+  const [courses, setCourses] = useState<string[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
+
   const [exam, setExam] = useState({
     unidad: "",
     semestre: "",
@@ -37,9 +41,27 @@ export default function UploadExamForm() {
   const semestres = ["2024-I", "2024-II"];
   const anios = ["2023", "2024"];
   const secciones = ["A", "B"];
-  const profesores = ["Juan Pérez", "María López"];
   const ciclos = ["I", "II", "III"];
-  const cursos = ["Algoritmos", "Base de Datos"];
+
+  // Cargar profesores y cursos desde la base de datos
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoadingData(true);
+        const [teachersData, coursesData] = await Promise.all([
+          getTeachers(),
+          getCourses(),
+        ]);
+        setTeachers(teachersData);
+        setCourses(coursesData);
+      } catch (err) {
+        console.error("Error al cargar datos:", err);
+      } finally {
+        setLoadingData(false);
+      }
+    };
+    loadData();
+  }, []);
 
   const handleChange =
     (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,7 +132,7 @@ export default function UploadExamForm() {
         curso: "",
         file: null,
       });
-      
+
       // Redirigir a mis exámenes después de 2 segundos
       setTimeout(() => {
         navigate("/my-exams");
@@ -219,36 +241,26 @@ export default function UploadExamForm() {
 
             {/* Profesor */}
             <Grid size={{ xs: 12 }}>
-              {!otroProfesor ? (
-                <TextField
-                  select
-                  fullWidth
-                  label="Profesor"
-                  value={exam.profesor}
-                  onChange={handleChange("profesor")}
-                >
-                  {profesores.map((p) => (
-                    <MenuItem key={p} value={p}>
-                      {p}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              ) : (
-                <TextField
-                  fullWidth
-                  label="Profesor"
-                  value={exam.profesor}
-                  onChange={handleChange("profesor")}
-                />
-              )}
-
-              <Button
-                sx={{ mt: 1 }}
-                size="small"
-                onClick={() => setOtroProfesor(!otroProfesor)}
-              >
-                {otroProfesor ? "Cancelar" : "Otro"}
-              </Button>
+              <Autocomplete
+                freeSolo
+                options={teachers}
+                value={exam.profesor || null}
+                onChange={(_, newValue) => {
+                  setExam({ ...exam, profesor: newValue || "" });
+                }}
+                onInputChange={(_, newValue) => {
+                  setExam({ ...exam, profesor: newValue });
+                }}
+                loading={loadingData}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Profesor"
+                    fullWidth
+                    placeholder="Escribe o selecciona un profesor"
+                  />
+                )}
+              />
             </Grid>
 
             {/* Ciclo - Curso */}
@@ -269,19 +281,26 @@ export default function UploadExamForm() {
             </Grid>
 
             <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                select
-                fullWidth
-                label="Curso"
-                value={exam.curso}
-                onChange={handleChange("curso")}
-              >
-                {cursos.map((c) => (
-                  <MenuItem key={c} value={c}>
-                    {c}
-                  </MenuItem>
-                ))}
-              </TextField>
+              <Autocomplete
+                freeSolo
+                options={courses}
+                value={exam.curso || null}
+                onChange={(_, newValue) => {
+                  setExam({ ...exam, curso: newValue || "" });
+                }}
+                onInputChange={(_, newValue) => {
+                  setExam({ ...exam, curso: newValue });
+                }}
+                loading={loadingData}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Curso"
+                    fullWidth
+                    placeholder="Escribe o selecciona un curso"
+                  />
+                )}
+              />
             </Grid>
 
             {/* Archivo */}
