@@ -7,16 +7,18 @@ service firebase.storage {
     }
 
     function isUnitru() {
-      return request.auth.token.email.matches('.*@unitru.edu.pe$');
+      return request.auth.token.email != null
+        && request.auth.token.email.matches('.*@unitru.edu.pe$');
     }
 
+    // NUEVA estructura
     match /exams/{anio}/{curso}/{unidad}/{seccion}/{fileName} {
+      allow read, write: if isAuthenticated() && isUnitru();
+    }
 
-      // Leer: cualquier usuario UNITRU autenticado
-      allow read: if isAuthenticated() && isUnitru();
-
-      // Escribir: cualquier usuario UNITRU autenticado
-      allow write: if isAuthenticated() && isUnitru();
+    // ESTRUCTURA ANTIGUA CON UID
+    match /exams/{userId}/{fileName} {
+      allow read, write: if isAuthenticated() && isUnitru();
     }
   }
 }
