@@ -108,7 +108,8 @@ export const uploadExam = async (user: User, examData: ExamData): Promise<string
   const anioPath = sanitizeForPath(examData.anio);
   const cursoPath = sanitizeForPath(examData.curso);
 
-  const filePath = `exams/${unidadPath}/${seccionPath}/${anioPath}/${cursoPath}/${Date.now()}_${examData.file.name}`;
+  const filePath = `exams/${anioPath}/${cursoPath}/${unidadPath}/${seccionPath}/${Date.now()}_${examData.file.name}`;
+
   const fileRef = ref(storage, filePath);
   await uploadBytes(fileRef, examData.file);
   const fileUrl = await getDownloadURL(fileRef);
