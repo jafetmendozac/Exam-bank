@@ -14,7 +14,8 @@ import {
 import { useState, useEffect } from "react";
 import { useAuth } from "@/auth/context/useAuth";
 import { useNavigate } from "react-router-dom";
-import { uploadExam, getTeachers, getCourses } from "../services/exams.service";
+import { getCourses, getTeachers, uploadExam } from "../services/exams.service";
+
 
 export default function UploadExamForm() {
   const { user } = useAuth();
@@ -37,11 +38,10 @@ export default function UploadExamForm() {
     file: null as File | null,
   });
 
-  const unidades = ["Unidad 1", "Unidad 2"];
-  const semestres = ["2024-I", "2024-II"];
-  const anios = ["2023", "2024"];
-  const secciones = ["A", "B"];
-  const ciclos = ["I", "II", "III"];
+  const unities = ["Unidad I", "Unidad II", "Unidad III"];
+  const schoolTerm = ["2024-I", "2024-II", "2024-EXT" ];
+  const sections = ["A", "B"];
+  const cycles = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
 
   // Cargar profesores y cursos desde la base de datos
   useEffect(() => {
@@ -174,6 +174,39 @@ export default function UploadExamForm() {
 
           {/* Unidad - Semestre */}
           <Grid container spacing={3}>
+
+          <Grid size={{ xs: 12, sm: 6 }}>
+              <TextField
+                select
+                fullWidth
+                label="Periodo"
+                value={exam.semestre}
+                onChange={handleChange("semestre")}
+              >
+                {schoolTerm.map((s) => (
+                  <MenuItem key={s} value={s}>
+                    {s}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <TextField
+                select
+                fullWidth
+                label="Ciclo"
+                value={exam.ciclo}
+                onChange={handleChange("ciclo")}
+              >
+                {cycles.map((c) => (
+                  <MenuItem key={c} value={c}>
+                    {c}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 select
@@ -182,42 +215,9 @@ export default function UploadExamForm() {
                 value={exam.unidad}
                 onChange={handleChange("unidad")}
               >
-                {unidades.map((u) => (
+                {unities.map((u) => (
                   <MenuItem key={u} value={u}>
                     {u}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                select
-                fullWidth
-                label="Semestre"
-                value={exam.semestre}
-                onChange={handleChange("semestre")}
-              >
-                {semestres.map((s) => (
-                  <MenuItem key={s} value={s}>
-                    {s}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-
-            {/* Año - Sección */}
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                select
-                fullWidth
-                label="Año"
-                value={exam.anio}
-                onChange={handleChange("anio")}
-              >
-                {anios.map((a) => (
-                  <MenuItem key={a} value={a}>
-                    {a}
                   </MenuItem>
                 ))}
               </TextField>
@@ -231,7 +231,7 @@ export default function UploadExamForm() {
                 value={exam.seccion}
                 onChange={handleChange("seccion")}
               >
-                {secciones.map((s) => (
+                {sections.map((s) => (
                   <MenuItem key={s} value={s}>
                     {s}
                   </MenuItem>
@@ -264,23 +264,8 @@ export default function UploadExamForm() {
             </Grid>
 
             {/* Ciclo - Curso */}
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                select
-                fullWidth
-                label="Ciclo"
-                value={exam.ciclo}
-                onChange={handleChange("ciclo")}
-              >
-                {ciclos.map((c) => (
-                  <MenuItem key={c} value={c}>
-                    {c}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
 
-            <Grid size={{ xs: 12, sm: 6 }}>
+            <Grid size={{ xs: 12 }}>
               <Autocomplete
                 freeSolo
                 options={courses}

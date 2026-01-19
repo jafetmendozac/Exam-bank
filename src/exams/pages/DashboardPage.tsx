@@ -10,8 +10,8 @@ import {
 import DescriptionIcon from "@mui/icons-material/Description";
 import DownloadIcon from "@mui/icons-material/Download";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import { useAuth } from "@/auth/context/useAuth";
-import { Button } from "@mui/material";
+// import { useAuth } from "@/auth/context/useAuth";
+// import { Button } from "@mui/material";
 import Header from "../components/Header";
 
 
@@ -20,7 +20,7 @@ const DashboardPage = () => {
   const availableExams = 24;
   const selectedExams = [];
   const recentExams = 6;
-  const { role } = useAuth();
+  // const { role } = useAuth();
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
