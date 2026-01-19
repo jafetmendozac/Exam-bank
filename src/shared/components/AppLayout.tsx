@@ -93,7 +93,7 @@ export default function AppLayout() {
 
 
   const commonMenuItems: MenuItem[] = [
-    { text: "Menu", icon: <Dashboard />, path: "/dashboard" },
+    { text: "Panel", icon: <Dashboard />, path: "/dashboard" },
     { text: "Examenes", icon: <Description />, path: "/exams" },
     { text: "Favoritos", icon: <Favorite />, path: "/favorites" },
     { text: "Notificaciones", icon: <Notifications />, path: "/notifications", badge: notificationCount },

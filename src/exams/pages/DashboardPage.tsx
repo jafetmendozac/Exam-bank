@@ -129,7 +129,7 @@ const DashboardPage = () => {
         </Grid>
       </Grid>
           {role === "admin" && (
-      <Button variant="contained">Subir examen</Button>
+      <Button variant="contained">Subir Cursos</Button>
     )}
     {role}
     </Container>
