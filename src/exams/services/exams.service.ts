@@ -42,51 +42,6 @@ export interface Exam {
   filePath: string; // Path en Storage (ej: "exams/userId/filename.pdf")
 }
 
-/**
- * Obtiene todos los profesores únicos de los exámenes guardados
- */
-export const getTeachers = async (): Promise<string[]> => {
-  try {
-    const q = query(collection(db, "exams"));
-    const querySnapshot = await getDocs(q);
-    const teachers = new Set<string>();
-
-    querySnapshot.docs.forEach((doc) => {
-      const data = doc.data();
-      if (data.teacher) {
-        teachers.add(data.teacher);
-      }
-    });
-
-    return Array.from(teachers).sort();
-  } catch (error) {
-    console.error("Error al obtener profesores:", error);
-    return [];
-  }
-};
-
-/**
- * Obtiene todos los cursos únicos de los exámenes guardados
- */
-export const getCourses = async (): Promise<string[]> => {
-  try {
-    const q = query(collection(db, "exams"));
-    const querySnapshot = await getDocs(q);
-    const courses = new Set<string>();
-
-    querySnapshot.docs.forEach((doc) => {
-      const data = doc.data();
-      if (data.course) {
-        courses.add(data.course);
-      }
-    });
-
-    return Array.from(courses).sort();
-  } catch (error) {
-    console.error("Error al obtener cursos:", error);
-    return [];
-  }
-};
 
 /**
  * Sube un examen a Firebase Storage y guarda los metadatos en Firestore

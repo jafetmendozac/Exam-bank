@@ -14,7 +14,9 @@ import {
 import { useState, useEffect } from "react";
 import { useAuth } from "@/auth/context/useAuth";
 import { useNavigate } from "react-router-dom";
-import { getCourses, getTeachers, uploadExam } from "../services/exams.service";
+import { uploadExam } from "../services/exams.service";
+import { getTeachers } from "../services/teachers.service";
+import { getCourses } from "../services/courses.service";
 
 
 export default function UploadExamForm() {
@@ -154,7 +156,7 @@ export default function UploadExamForm() {
         p: 2,
       }}
     >
-      <Card sx={{ maxWidth: 700, width: "100%", borderRadius: 4 }}>
+      <Card sx={{ maxWidth: 700, width: "100%", borderRadius: 2 }}>
         <CardContent component="form" onSubmit={submitExam} sx={{ p: 4 }}>
           <Typography variant="h5" fontWeight={600} mb={3}>
             Subir Examen
@@ -242,14 +244,10 @@ export default function UploadExamForm() {
             {/* Profesor */}
             <Grid size={{ xs: 12 }}>
               <Autocomplete
-                freeSolo
                 options={teachers}
                 value={exam.profesor || null}
-                onChange={(_, newValue) => {
+                onChange={(_, newValue: string | null) => {
                   setExam({ ...exam, profesor: newValue || "" });
-                }}
-                onInputChange={(_, newValue) => {
-                  setExam({ ...exam, profesor: newValue });
                 }}
                 loading={loadingData}
                 renderInput={(params) => (
@@ -257,7 +255,7 @@ export default function UploadExamForm() {
                     {...params}
                     label="Profesor"
                     fullWidth
-                    placeholder="Escribe o selecciona un profesor"
+                    placeholder="Selecciona un profesor"
                   />
                 )}
               />
@@ -267,14 +265,10 @@ export default function UploadExamForm() {
 
             <Grid size={{ xs: 12 }}>
               <Autocomplete
-                freeSolo
                 options={courses}
                 value={exam.curso || null}
-                onChange={(_, newValue) => {
+                onChange={(_, newValue: string | null) => {
                   setExam({ ...exam, curso: newValue || "" });
-                }}
-                onInputChange={(_, newValue) => {
-                  setExam({ ...exam, curso: newValue });
                 }}
                 loading={loadingData}
                 renderInput={(params) => (
@@ -282,7 +276,7 @@ export default function UploadExamForm() {
                     {...params}
                     label="Curso"
                     fullWidth
-                    placeholder="Escribe o selecciona un curso"
+                    placeholder="Selecciona un curso"
                   />
                 )}
               />
