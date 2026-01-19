@@ -128,10 +128,10 @@ const DashboardPage = () => {
           </Card>
         </Grid>
       </Grid>
-          {role === "admin" && (
-      <Button variant="contained">Subir Cursos</Button>
+          {/* {role === "admin" && (
+      <Button variant="contained">Subir Profesores</Button>
     )}
-    {role}
+    {role} */}
     </Container>
   );
 };
