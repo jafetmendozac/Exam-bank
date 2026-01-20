@@ -16,7 +16,6 @@ import type { User } from "firebase/auth";
 export interface ExamData {
   unidad: string;
   semestre: string;
-  anio: string;
   seccion: string;
   profesor: string;
   ciclo: string;
@@ -32,7 +31,6 @@ export interface Exam {
   teacher: string;
   cycle: string;
   unit: string;
-  year: string;
   section: string;
   uploadDate: Date;
   status: "pending" | "approved" | "rejected";
@@ -60,10 +58,11 @@ export const uploadExam = async (user: User, examData: ExamData): Promise<string
   // 1. Subir archivo a Storage con estructura de carpetas: exams/unidad/seccion/año/curso/
   const unidadPath = sanitizeForPath(examData.unidad);
   // const seccionPath = sanitizeForPath(examData.seccion);
-  const anioPath = sanitizeForPath(examData.anio);
   const cursoPath = sanitizeForPath(examData.curso);
 
-  const filePath = `exams/${anioPath}/${cursoPath}/${unidadPath}/${Date.now()}_${examData.file.name}`;
+  const semesterPath = sanitizeForPath(examData.semestre);
+
+  const filePath = `exams/${cursoPath}/${semesterPath}/${unidadPath}/${Date.now()}_${examData.file.name}`;
 
   const fileRef = ref(storage, filePath);
   await uploadBytes(fileRef, examData.file);
@@ -80,7 +79,6 @@ export const uploadExam = async (user: User, examData: ExamData): Promise<string
     teacher: examData.profesor,
     cycle: examData.semestre,
     unit: examData.unidad,
-    year: examData.anio,
     section: examData.seccion,
     uploadDate: serverTimestamp(),
     status: "pending" as const,

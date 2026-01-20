@@ -18,6 +18,19 @@ import { uploadExam } from "../services/exams.service";
 import { getTeachers } from "../services/teachers.service";
 import { getCourses } from "../services/courses.service";
 
+function generateSchoolTerms(startYear: number, endYear: number): string[] {
+  const periods = ["I", "II", "EXT"];
+  const terms = [];
+
+  for (let year = startYear; year <= endYear; year++) {
+    for (const period of periods) {
+      terms.push(`${year}-${period}`);
+    }
+  }
+
+  return terms;
+}
+
 
 export default function UploadExamForm() {
   const { user } = useAuth();
@@ -32,18 +45,60 @@ export default function UploadExamForm() {
   const [exam, setExam] = useState({
     unidad: "",
     semestre: "",
-    anio: "",
     seccion: "",
     profesor: "",
     ciclo: "",
     curso: "",
     file: null as File | null,
   });
+  const [filteredCycles, setFilteredCycles] = useState<string[]>([]);
 
   const unities = ["Unidad I", "Unidad II", "Unidad III"];
-  const schoolTerm = ["2024-I", "2024-II", "2024-EXT" ];
   const sections = ["A", "B"];
-  const cycles = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
+  const schoolTerm = generateSchoolTerms(2019, 2025);
+  const allCycles = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
+  const oddCycles = ["I", "III", "V", "VII", "IX"];
+  const evenCycles = ["II", "IV", "VI", "VIII", "X"];
+
+  // ✅ FUNCIÓN: Filtrar ciclos según periodo
+  const getCyclesByPeriod = (period: string): string[] => {
+    if (period.endsWith("-I")) {
+      return oddCycles; // Semestre I → impares
+    } else if (period.endsWith("-II")) {
+      return evenCycles; // Semestre II → pares
+    } else if (period.endsWith("-EXT")) {
+      return allCycles; // Extraordinario → todos
+    }
+    return allCycles; // Default
+  };
+
+  // ✅ HANDLER: Cambio de periodo
+  const handlePeriodChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newPeriod = e.target.value;
+    const availableCycles = getCyclesByPeriod(newPeriod);
+
+    setFilteredCycles(availableCycles);
+
+    // Resetear ciclo si el actual ya no es válido
+    const isCycleValid = availableCycles.includes(exam.ciclo);
+
+    setExam({
+      ...exam,
+      semestre: newPeriod,
+      ciclo: isCycleValid ? exam.ciclo : "", // Limpiar si no es válido
+    });
+  };
+
+  // ✅ Inicializar ciclos filtrados cuando carga
+  useEffect(() => {
+    if (exam.semestre) {
+      setFilteredCycles(getCyclesByPeriod(exam.semestre));
+    } else {
+      setFilteredCycles(allCycles);
+    }
+  }, [exam.semestre]);
+
+
 
   // Cargar profesores y cursos desde la base de datos
   useEffect(() => {
@@ -94,7 +149,7 @@ export default function UploadExamForm() {
     setSuccess(false);
 
     // Validar que todos los campos estén llenos
-    if (!exam.unidad || !exam.semestre || !exam.anio || !exam.seccion || !exam.profesor || !exam.ciclo || !exam.curso) {
+    if (!exam.unidad || !exam.semestre || !exam.seccion || !exam.profesor || !exam.ciclo || !exam.curso) {
       setError("Por favor completa todos los campos");
       return;
     }
@@ -114,7 +169,6 @@ export default function UploadExamForm() {
       await uploadExam(user, {
         unidad: exam.unidad,
         semestre: exam.semestre,
-        anio: exam.anio,
         seccion: exam.seccion,
         profesor: exam.profesor,
         ciclo: exam.ciclo,
@@ -127,7 +181,6 @@ export default function UploadExamForm() {
       setExam({
         unidad: "",
         semestre: "",
-        anio: "",
         seccion: "",
         profesor: "",
         ciclo: "",
@@ -177,13 +230,13 @@ export default function UploadExamForm() {
           {/* Unidad - Semestre */}
           <Grid container spacing={3}>
 
-          <Grid size={{ xs: 12, sm: 6 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 select
                 fullWidth
                 label="Periodo"
                 value={exam.semestre}
-                onChange={handleChange("semestre")}
+                onChange={handlePeriodChange} // ✅ Usar handler personalizado
               >
                 {schoolTerm.map((s) => (
                   <MenuItem key={s} value={s}>
@@ -200,8 +253,9 @@ export default function UploadExamForm() {
                 label="Ciclo"
                 value={exam.ciclo}
                 onChange={handleChange("ciclo")}
+                disabled={!exam.semestre} // ✅ Deshabilitar hasta seleccionar periodo
               >
-                {cycles.map((c) => (
+                {filteredCycles.map((c) => (
                   <MenuItem key={c} value={c}>
                     {c}
                   </MenuItem>

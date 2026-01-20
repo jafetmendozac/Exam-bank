@@ -44,7 +44,6 @@ interface MyExam {
   teacher: string
   cycle: string
   unit: string
-  year: string
   section: string
   uploadDate: Date | string
   status: "pending" | "approved" | "rejected"

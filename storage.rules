@@ -12,12 +12,12 @@ service firebase.storage {
     }
 
     // NUEVA estructura
-    match /exams/{anio}/{curso}/{unidad}/{fileName} {
+    match /exams/{curso}/{semestre}/{unidad}/{fileName} {
       allow read, write: if isAuthenticated() && isUnitru();
     }
 
     // ESTRUCTURA ANTIGUA CON UID
-    match /exams/{userId}/{fileName} {
+    match /exams/{anio}/{curso}/{unidad}/{seccion}/{fileName} {
       allow read, write: if isAuthenticated() && isUnitru();
     }
   }
