@@ -59,11 +59,11 @@ export const uploadExam = async (user: User, examData: ExamData): Promise<string
 
   // 1. Subir archivo a Storage con estructura de carpetas: exams/unidad/seccion/año/curso/
   const unidadPath = sanitizeForPath(examData.unidad);
-  const seccionPath = sanitizeForPath(examData.seccion);
+  // const seccionPath = sanitizeForPath(examData.seccion);
   const anioPath = sanitizeForPath(examData.anio);
   const cursoPath = sanitizeForPath(examData.curso);
 
-  const filePath = `exams/${anioPath}/${cursoPath}/${unidadPath}/${seccionPath}/${Date.now()}_${examData.file.name}`;
+  const filePath = `exams/${anioPath}/${cursoPath}/${unidadPath}/${Date.now()}_${examData.file.name}`;
 
   const fileRef = ref(storage, filePath);
   await uploadBytes(fileRef, examData.file);
