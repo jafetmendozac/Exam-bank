@@ -9,6 +9,7 @@ import {
   deleteDoc,
   updateDoc,
   serverTimestamp,
+  QueryConstraint,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 import type { User } from "firebase/auth";
@@ -77,7 +78,8 @@ export const uploadExam = async (user: User, examData: ExamData): Promise<string
     title,
     course: examData.curso,
     teacher: examData.profesor,
-    cycle: examData.semestre,
+    cycle: examData.ciclo,
+    schoolTerm: examData.semestre,
     unit: examData.unidad,
     section: examData.seccion,
     uploadDate: serverTimestamp(),
@@ -127,8 +129,53 @@ export const getUserExams = async (userId: string): Promise<Exam[]> => {
       course: data.course,
       teacher: data.teacher,
       cycle: data.cycle,
+      schoolTerm: data.semester,
       unit: data.unit,
-      year: data.year,
+      section: data.section,
+      uploadDate: data.uploadDate?.toDate() || new Date(),
+      status: data.status || "pending",
+      downloads: data.downloads || 0,
+      fileUrl: data.fileUrl,
+      fileName: data.fileName,
+      filePath,
+    } as Exam;
+  });
+};
+
+/**
+ * Obtiene todos los exámenes (opcionalmente filtrados por ciclo, curso o profesor)
+ */
+export const getAllExams = async (filters?: {
+  cycle?: string;
+  course?: string;
+  teacher?: string;
+  status?: "pending" | "approved" | "rejected";
+}): Promise<Exam[]> => {
+  const constraints: QueryConstraint[] = [];
+  if (filters?.cycle) constraints.push(where("cycle", "==", filters.cycle));
+  if (filters?.course) constraints.push(where("course", "==", filters.course));
+  if (filters?.teacher) constraints.push(where("teacher", "==", filters.teacher));
+  if (filters?.status) constraints.push(where("status", "==", filters.status));
+
+  const q = constraints.length
+    ? query(collection(db, "exams"), ...constraints)
+    : query(collection(db, "exams"));
+
+  const querySnapshot = await getDocs(q);
+
+  return querySnapshot.docs.map((doc) => {
+    const data = doc.data();
+    const filePath = data.filePath || (data.fileUrl ? extractPathFromURL(data.fileUrl) : "");
+
+    return {
+      id: doc.id,
+      userId: data.userId,
+      title: data.title,
+      course: data.course,
+      teacher: data.teacher,
+      cycle: data.cycle,
+      schoolTerm: data.semester,
+      unit: data.unit,
       section: data.section,
       uploadDate: data.uploadDate?.toDate() || new Date(),
       status: data.status || "pending",
