@@ -41,14 +41,14 @@ export default function ExamsPage() {
   const [selectedExams, setSelectedExams] = useState<string[]>([]);
 
   const exams: Exam[] = [
-    {
-      id: "1",
-      title: "Examen Parcial",
-      description: "Unidad 1",
-      subject: "Matemáticas",
-      fileType: "pdf",
-      uploadedAt: new Date(),
-    },
+    // {
+    //   id: "1",
+    //   title: "Examen Parcial",
+    //   description: "Unidad 1",
+    //   subject: "Matemáticas",
+    //   fileType: "pdf",
+    //   uploadedAt: new Date(),
+    // },
   ];
 
   const filteredExams = useMemo(() => {
@@ -136,105 +136,11 @@ export default function ExamsPage() {
 
       {/* TABLE VIEW */}
       {viewMode === "table" && (
-        <Card>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell padding="checkbox">
-                  <Checkbox
-                    checked={
-                      selectedExams.length === filteredExams.length &&
-                      filteredExams.length > 0
-                    }
-                    indeterminate={
-                      selectedExams.length > 0 &&
-                      selectedExams.length < filteredExams.length
-                    }
-                    onChange={toggleAll}
-                  />
-                </TableCell>
-                <TableCell>Examen</TableCell>
-                <TableCell>Materia</TableCell>
-                <TableCell>Tipo</TableCell>
-                <TableCell>Fecha</TableCell>
-              </TableRow>
-            </TableHead>
-
-            <TableBody>
-              {filteredExams.map((exam) => (
-                <TableRow key={exam.id} hover>
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      checked={selectedExams.includes(exam.id)}
-                      onChange={() => toggleExam(exam.id)}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Typography fontWeight={600}>{exam.title}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {exam.description}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Chip label={exam.subject} />
-                  </TableCell>
-                  <TableCell>{exam.fileType.toUpperCase()}</TableCell>
-                  <TableCell>
-                    {exam.uploadedAt.toLocaleDateString()}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
+        <TableView filteredExams={filteredExams} selectedExams={selectedExams} toggleExam={toggleExam} toggleAll={toggleAll} />
       )}
 
-      {/* GRID VIEW */}
       {viewMode === "grid" && (
-        <Grid container spacing={3}>
-          {filteredExams.map((exam) => (
-            <Grid size={{ xs: 12, md: 6, lg: 4 }} key={exam.id}>
-              <Card
-                sx={{
-                  position: "relative",
-                  border:
-                    selectedExams.includes(exam.id)
-                      ? "2px solid"
-                      : undefined,
-                  borderColor: "primary.main",
-                }}
-              >
-                <Checkbox
-                  checked={selectedExams.includes(exam.id)}
-                  onChange={() => toggleExam(exam.id)}
-                  sx={{ position: "absolute", top: 8, left: 8 }}
-                />
-
-                <CardContent>
-                  <Stack spacing={1}>
-                    <Chip label={exam.subject} size="small" />
-                    <Typography variant="h6">{exam.title}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {exam.description}
-                    </Typography>
-                    <Typography variant="caption">
-                      {exam.uploadedAt.toLocaleDateString()}
-                    </Typography>
-
-                    <Stack direction="row" spacing={1} mt={1}>
-                      <Button size="small" variant="contained">
-                        Ver
-                      </Button>
-                      <Button size="small" variant="outlined">
-                        Descargar
-                      </Button>
-                    </Stack>
-                  </Stack>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+        <GridView filteredExams={filteredExams} selectedExams={selectedExams} toggleExam={toggleExam} />
       )}
 
       {filteredExams.length === 0 && (
@@ -247,4 +153,114 @@ export default function ExamsPage() {
       )}
     </Container>
   );
+}
+
+
+function TableView({ filteredExams, selectedExams, toggleExam, toggleAll }) {
+
+  return(
+    <Card>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell padding="checkbox">
+              <Checkbox
+                checked={
+                  selectedExams.length === filteredExams.length &&
+                  filteredExams.length > 0
+                }
+                indeterminate={
+                  selectedExams.length > 0 &&
+                  selectedExams.length < filteredExams.length
+                }
+                onChange={toggleAll}
+              />
+            </TableCell>
+            <TableCell>Examen</TableCell>
+            <TableCell>Materia</TableCell>
+            <TableCell>Tipo</TableCell>
+            <TableCell>Fecha</TableCell>
+          </TableRow>
+        </TableHead>
+
+        <TableBody>
+          {filteredExams.map((exam) => (
+            <TableRow key={exam.id} hover>
+              <TableCell padding="checkbox">
+                <Checkbox
+                  checked={selectedExams.includes(exam.id)}
+                  onChange={() => toggleExam(exam.id)}
+                />
+              </TableCell>
+              <TableCell>
+                <Typography fontWeight={600}>{exam.title}</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {exam.description}
+                </Typography>
+              </TableCell>
+              <TableCell>
+                <Chip label={exam.subject} />
+              </TableCell>
+              <TableCell>{exam.fileType.toUpperCase()}</TableCell>
+              <TableCell>
+                {exam.uploadedAt.toLocaleDateString()}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </Card>
+  )
+}
+
+
+
+function GridView({ filteredExams, selectedExams, toggleExam }) {
+
+  return(
+    <Grid container spacing={3}>
+      {filteredExams.map((exam) => (
+        <Grid size={{ xs: 12, md: 6, lg: 4 }} key={exam.id}>
+          <Card
+            sx={{
+              position: "relative",
+              border:
+                selectedExams.includes(exam.id)
+                  ? "2px solid"
+                  : undefined,
+              borderColor: "primary.main",
+            }}
+          >
+            <Checkbox
+              checked={selectedExams.includes(exam.id)}
+              onChange={() => toggleExam(exam.id)}
+              sx={{ position: "absolute", top: 8, left: 8 }}
+            />
+
+            <CardContent>
+              <Stack spacing={1}>
+                <Chip label={exam.subject} size="small" />
+                <Typography variant="h6">{exam.title}</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {exam.description}
+                </Typography>
+                <Typography variant="caption">
+                  {exam.uploadedAt.toLocaleDateString()}
+                </Typography>
+
+                <Stack direction="row" spacing={1} mt={1}>
+                  <Button size="small" variant="contained">
+                    Ver
+                  </Button>
+                  <Button size="small" variant="outlined">
+                    Descargar
+                  </Button>
+                </Stack>
+              </Stack>
+            </CardContent>
+          </Card>
+        </Grid>
+      ))}
+    </Grid>
+  )
 }

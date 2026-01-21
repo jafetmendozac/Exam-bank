@@ -60,26 +60,23 @@ export default function UploadExamForm() {
   const oddCycles = ["I", "III", "V", "VII", "IX"];
   const evenCycles = ["II", "IV", "VI", "VIII", "X"];
 
-  // ✅ FUNCIÓN: Filtrar ciclos según periodo
   const getCyclesByPeriod = (period: string): string[] => {
     if (period.endsWith("-I")) {
-      return oddCycles; // Semestre I → impares
+      return oddCycles;
     } else if (period.endsWith("-II")) {
-      return evenCycles; // Semestre II → pares
+      return evenCycles;
     } else if (period.endsWith("-EXT")) {
-      return allCycles; // Extraordinario → todos
+      return allCycles;
     }
-    return allCycles; // Default
+    return allCycles;
   };
 
-  // ✅ HANDLER: Cambio de periodo
   const handlePeriodChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newPeriod = e.target.value;
     const availableCycles = getCyclesByPeriod(newPeriod);
 
     setFilteredCycles(availableCycles);
 
-    // Resetear ciclo si el actual ya no es válido
     const isCycleValid = availableCycles.includes(exam.ciclo);
 
     setExam({
@@ -89,7 +86,6 @@ export default function UploadExamForm() {
     });
   };
 
-  // ✅ Inicializar ciclos filtrados cuando carga
   useEffect(() => {
     if (exam.semestre) {
       setFilteredCycles(getCyclesByPeriod(exam.semestre));
@@ -100,7 +96,6 @@ export default function UploadExamForm() {
 
 
 
-  // Cargar profesores y cursos desde la base de datos
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -128,12 +123,11 @@ export default function UploadExamForm() {
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
       const file = e.target.files[0];
-      // Validar que sea PDF
+
       if (file.type !== "application/pdf") {
         setError("Solo se permiten archivos PDF");
         return;
       }
-      // Validar tamaño (máximo 10MB)
       if (file.size > 10 * 1024 * 1024) {
         setError("El archivo no debe exceder 10MB");
         return;
@@ -236,7 +230,7 @@ export default function UploadExamForm() {
                 fullWidth
                 label="Periodo"
                 value={exam.semestre}
-                onChange={handlePeriodChange} // ✅ Usar handler personalizado
+                onChange={handlePeriodChange}
               >
                 {schoolTerm.map((s) => (
                   <MenuItem key={s} value={s}>
@@ -253,7 +247,7 @@ export default function UploadExamForm() {
                 label="Ciclo"
                 value={exam.ciclo}
                 onChange={handleChange("ciclo")}
-                disabled={!exam.semestre} // ✅ Deshabilitar hasta seleccionar periodo
+                disabled={!exam.semestre}
               >
                 {filteredCycles.map((c) => (
                   <MenuItem key={c} value={c}>
