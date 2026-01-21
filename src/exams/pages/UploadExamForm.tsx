@@ -19,7 +19,7 @@ import { getTeachers } from "../services/teachers.service";
 import { getCourses } from "../services/courses.service";
 
 function generateSchoolTerms(startYear: number, endYear: number): string[] {
-  const periods = ["I", "II", "EXT"];
+  const periods = ["EXT", "I", "II"];
   const terms = [];
 
   for (let year = startYear; year <= endYear; year++) {
