@@ -19,6 +19,7 @@ import NotificationsPage from "@/exams/pages/NotificationsPage";
 import ProfilePage from "@/exams/pages/ProfilePage";
 import ReportPage from "@/exams/pages/ReportPage";
 import MyExamsPage from "@/exams/pages/MyExamsPage";
+import ReviewExams from "@/exams/pages/ReviewExams";
 
 
 export const router = createBrowserRouter([
@@ -55,6 +56,8 @@ export const router = createBrowserRouter([
             children: [
               { path: "/upload", element: <UploadExamForm /> },
               { path: "/admin", element: <AdminPage /> },
+              { path: "/admin/review-exams", element: <ReviewExams /> },
+
             ],
           },
         ],
