@@ -184,7 +184,7 @@ export const getAllExams = async (filters?: {
       downloads: data.downloads || 0,
       fileUrl: data.fileUrl,
       fileName: data.fileName,
-      fileSize: data.file.size,
+      fileSize: data.fileSize,
       filePath,
     } as Exam;
   });
