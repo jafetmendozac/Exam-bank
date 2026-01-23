@@ -87,6 +87,7 @@ export const uploadExam = async (user: User, examData: ExamData): Promise<string
     downloads: 0,
     fileUrl,
     fileName: examData.file.name,
+    fileSize: examData.file.size,
     filePath, // Guardar el path para poder eliminar el archivo después
   });
 
@@ -137,6 +138,7 @@ export const getUserExams = async (userId: string): Promise<Exam[]> => {
       downloads: data.downloads || 0,
       fileUrl: data.fileUrl,
       fileName: data.fileName,
+      fileSize: data.file.size,
       filePath,
     } as Exam;
   });
@@ -182,6 +184,7 @@ export const getAllExams = async (filters?: {
       downloads: data.downloads || 0,
       fileUrl: data.fileUrl,
       fileName: data.fileName,
+      fileSize: data.file.size,
       filePath,
     } as Exam;
   });

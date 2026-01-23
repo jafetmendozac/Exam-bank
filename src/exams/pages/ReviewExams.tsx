@@ -211,10 +211,10 @@ export default function ReviewExams() {
             <CardContent sx={{ py: 8, textAlign: "center" }}>
               <CheckCircle sx={{ fontSize: 64, color: "success.main", mb: 2 }} />
               <Typography variant="h6" gutterBottom>
-                All Caught Up!
+                Todo al día!
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                There are no exams pending review at the moment.
+                No hay exámenes pendientes de revisión en este momento.
               </Typography>
             </CardContent>
           </Card>
