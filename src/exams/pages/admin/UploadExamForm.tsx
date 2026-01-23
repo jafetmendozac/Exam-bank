@@ -14,9 +14,9 @@ import {
 import { useState, useEffect } from "react";
 import { useAuth } from "@/auth/context/useAuth";
 import { useNavigate } from "react-router-dom";
-import { uploadExam } from "../services/exams.service";
-import { getTeachers } from "../services/teachers.service";
-import { getCourses } from "../services/courses.service";
+import { getTeachers } from "@/exams/services/teachers.service";
+import { getCourses } from "@/exams/services/courses.service";
+import { uploadExam } from "@/exams/services/exams.service";
 
 function generateSchoolTerms(startYear: number, endYear: number): string[] {
   const periods = ["EXT", "I", "II"];

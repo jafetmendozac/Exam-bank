@@ -30,14 +30,14 @@ import {
   Description,
 } from "@mui/icons-material";
 
-import Header from "../components/Header";
-import { PageContainer } from "../components/PageContainer";
+import Header from "../../components/Header";
+import { PageContainer } from "../../components/PageContainer";
 import {
   getAllExams,
   updateExamStatus,
   getExamDownloadURL,
   type Exam as ServiceExam,
-} from "../services/exams.service";
+} from "../../services/exams.service";
 
 interface PendingExam {
   id: string;
@@ -67,13 +67,13 @@ export default function ReviewExams() {
 
   useEffect(() => {
     let mounted = true;
-    
+
     const fetchExams = async () => {
       try {
         const res: ServiceExam[] = await getAllExams({ status: "pending" });
-        
+
         if (!mounted) return;
-        
+
         const mapped: PendingExam[] = res.map((r) => ({
           id: r.id,
           title: r.title,
@@ -81,10 +81,10 @@ export default function ReviewExams() {
           teacher: r.teacher,
           cycle: r.cycle,
           uploadedBy: r.userId,
-          uploadDate: r.uploadDate instanceof Date 
-            ? r.uploadDate 
-            : r.uploadDate 
-              ? new Date(r.uploadDate as string | number) 
+          uploadDate: r.uploadDate instanceof Date
+            ? r.uploadDate
+            : r.uploadDate
+              ? new Date(r.uploadDate as string | number)
               : undefined,
           description: `${r.unit || ""}${r.section ? ` - ${r.section}` : ""}`,
           status: r.status,
@@ -92,7 +92,7 @@ export default function ReviewExams() {
           fileUrl: r.fileUrl,
           fileName: r.fileName,
         }));
-        
+
         setExams(mapped);
       } catch (err) {
         console.error(err);
