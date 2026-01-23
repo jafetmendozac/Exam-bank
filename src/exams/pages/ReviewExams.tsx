@@ -125,11 +125,11 @@ export default function ReviewExams() {
     updateExamStatus(selectedExam.id, "approved")
       .then(() => {
         setExams((prev) => prev.filter((e) => e.id !== selectedExam.id));
-        setSnackbar({ open: true, message: `Exam "${selectedExam.title}" approved`, severity: "success" });
+        setSnackbar({ open: true, message: `El examen fue "${selectedExam.title}" aprobado`, severity: "success" });
       })
       .catch((err) => {
         console.error(err);
-        setSnackbar({ open: true, message: `Error approving exam`, severity: "error" });
+        setSnackbar({ open: true, message: `Error al aprobar el examen`, severity: "error" });
       })
       .finally(() => {
         setOpenApproveDialog(false);
@@ -143,12 +143,12 @@ export default function ReviewExams() {
     updateExamStatus(selectedExam.id, "rejected")
       .then(() => {
         setExams((prev) => prev.filter((e) => e.id !== selectedExam.id));
-        setSnackbar({ open: true, message: `Exam "${selectedExam.title}" rejected`, severity: "error" });
+        setSnackbar({ open: true, message: `El examen fue "${selectedExam.title}" rechazado`, severity: "error" });
         setRejectReason("");
       })
       .catch((err) => {
         console.error(err);
-        setSnackbar({ open: true, message: `Error rejecting exam`, severity: "error" });
+        setSnackbar({ open: true, message: `Error al rechazar el examen`, severity: "error" });
       })
       .finally(() => {
         setOpenRejectDialog(false);
@@ -160,17 +160,17 @@ export default function ReviewExams() {
     try {
       const url = exam.fileUrl || (exam.filePath ? await getExamDownloadURL(exam.filePath) : undefined);
       if (url) window.open(url, "_blank");
-      else setSnackbar({ open: true, message: "No file URL available", severity: "error" });
+      else setSnackbar({ open: true, message: "No hay ninguna URL de archivo disponible", severity: "error" });
     } catch (err) {
       console.error(err);
-      setSnackbar({ open: true, message: "Error opening file", severity: "error" });
+      setSnackbar({ open: true, message: "Error al abrir el archivo", severity: "error" });
     }
   };
 
   const handleDownload = async (exam: PendingExam) => {
     try {
       const url = exam.fileUrl || (exam.filePath ? await getExamDownloadURL(exam.filePath) : undefined);
-      if (!url) return setSnackbar({ open: true, message: "No file URL available", severity: "error" });
+      if (!url) return setSnackbar({ open: true, message: "No hay ninguna URL de archivo disponible", severity: "error" });
       const a = document.createElement("a");
       a.href = url;
       a.download = exam.fileName || exam.title;
@@ -180,7 +180,7 @@ export default function ReviewExams() {
       a.remove();
     } catch (err) {
       console.error(err);
-      setSnackbar({ open: true, message: "Error downloading file", severity: "error" });
+      setSnackbar({ open: true, message: "Error al descargar el archivo", severity: "error" });
     }
   };
 
@@ -203,7 +203,7 @@ export default function ReviewExams() {
 
       <Box sx={{ mt: 3 }}>
         <Alert severity="info" sx={{ mb: 2 }}>
-          You have <strong>{pendingCount}</strong> exam{pendingCount !== 1 ? "s" : ""} pending review
+          Tienes <strong>{pendingCount}</strong> examen{pendingCount !== 1 ? "es" : ""} pendiente{pendingCount !== 1 ? "s" : ""} de revisión.
         </Alert>
 
         {exams.length === 0 ? (
@@ -249,7 +249,7 @@ export default function ReviewExams() {
                                   <Person fontSize="small" color="action" />
                                   <Box>
                                     <Typography variant="caption" color="text.secondary" display="block">
-                                      Uploaded by
+                                      Subido por
                                     </Typography>
                                     <Typography variant="body2" fontWeight={500}>
                                       {exam.uploadedBy}
@@ -265,13 +265,13 @@ export default function ReviewExams() {
                                   <CalendarToday fontSize="small" color="action" />
                                   <Box>
                                     <Typography variant="caption" color="text.secondary" display="block">
-                                      Upload date
+                                      Fecha de subida
                                     </Typography>
                                     <Typography variant="body2" fontWeight={500}>
                                       {exam.uploadDate ? new Date(exam.uploadDate).toLocaleDateString() : ""}
                                     </Typography>
                                     <Typography variant="caption" color="text.secondary">
-                                      File size: {exam.fileSize}
+                                      Tamaño del Archivo: {exam.fileSize}
                                     </Typography>
                                   </Box>
                                 </Box>
@@ -292,20 +292,20 @@ export default function ReviewExams() {
                           }}
                         >
                           <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-                            Actions
+                            Acciones
                           </Typography>
                           <Button variant="outlined" startIcon={<Visibility />} fullWidth onClick={() => handlePreview(exam)}>
-                            Preview
+                            Vista Previa
                           </Button>
                           <Button variant="outlined" startIcon={<Download />} fullWidth onClick={() => handleDownload(exam)}>
-                            Download
+                            Descargar
                           </Button>
                           <Divider sx={{ my: 1 }} />
                           <Button variant="contained" color="success" startIcon={<CheckCircle />} fullWidth onClick={() => handleApprove(exam)}>
-                            Approve
+                            Aprobar
                           </Button>
                           <Button variant="contained" color="error" startIcon={<Cancel />} fullWidth onClick={() => handleReject(exam)}>
-                            Reject
+                            Rechazar
                           </Button>
                         </Paper>
                       </Grid>
@@ -318,10 +318,10 @@ export default function ReviewExams() {
         )}
 
         <Dialog open={openApproveDialog} onClose={() => setOpenApproveDialog(false)} maxWidth="sm" fullWidth>
-          <DialogTitle>Approve Exam</DialogTitle>
+          <DialogTitle>Aprobar Examen</DialogTitle>
           <DialogContent>
             <Typography variant="body1" gutterBottom>
-              Are you sure you want to approve this exam?
+              ¿Estás seguro de que quieres aprobar este examen?
             </Typography>
             {selectedExam && (
               <Paper variant="outlined" sx={{ p: 2, mt: 2, backgroundColor: "background.default" }}>
@@ -332,27 +332,27 @@ export default function ReviewExams() {
                   {selectedExam.course}
                 </Typography>
                 <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
-                  Uploaded by: {selectedExam.uploadedBy}
+                  Subido por: {selectedExam.uploadedBy}
                 </Typography>
               </Paper>
             )}
             <Alert severity="success" sx={{ mt: 2 }}>
-              This exam will be published and made available to all students.
+              Este examen será publicado y estará disponible para todos los estudiantes.
             </Alert>
           </DialogContent>
           <DialogActions sx={{ p: 3 }}>
-            <Button onClick={() => setOpenApproveDialog(false)}>Cancel</Button>
+            <Button onClick={() => setOpenApproveDialog(false)}>Cancelar</Button>
             <Button variant="contained" color="success" onClick={confirmApprove}>
-              Confirm Approval
+              Confirmar Aprobación
             </Button>
           </DialogActions>
         </Dialog>
 
         <Dialog open={openRejectDialog} onClose={() => setOpenRejectDialog(false)} maxWidth="sm" fullWidth>
-          <DialogTitle>Reject Exam</DialogTitle>
+          <DialogTitle>Rechazar Examen</DialogTitle>
           <DialogContent>
             <Typography variant="body1" gutterBottom>
-              Please provide a reason for rejecting this exam:
+              Por favor, proporciona una razón para rechazar este examen:
             </Typography>
             {selectedExam && (
               <Paper variant="outlined" sx={{ p: 2, mt: 2, mb: 3, backgroundColor: "background.default" }}>
@@ -363,7 +363,7 @@ export default function ReviewExams() {
                   {selectedExam.course}
                 </Typography>
                 <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
-                  Uploaded by: {selectedExam.uploadedBy}
+                  Subido por: {selectedExam.uploadedBy}
                 </Typography>
               </Paper>
             )}
@@ -376,16 +376,16 @@ export default function ReviewExams() {
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
               required
-              helperText="This message will be sent to the student who uploaded the exam"
+              helperText="Este mensaje será enviado al estudiante que subió el examen"
             />
             <Alert severity="warning" sx={{ mt: 2 }}>
-              The student will be notified about the rejection and can submit a corrected version.
+              El estudiante será notificado sobre el rechazo y podrá enviar una versión corregida.
             </Alert>
           </DialogContent>
           <DialogActions sx={{ p: 3 }}>
             <Button onClick={() => setOpenRejectDialog(false)}>Cancel</Button>
             <Button variant="contained" color="error" onClick={confirmReject} disabled={!rejectReason.trim()}>
-              Confirm Rejection
+              Confirmar Rechazo
             </Button>
           </DialogActions>
         </Dialog>
