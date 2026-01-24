@@ -208,7 +208,7 @@ export default function AdminLayout() {
                 component="main"
                 sx={{
                     flexGrow: 1,
-                    marginLeft: `${adminDrawerWidth}px`,
+                    // marginLeft: `${adminDrawerWidth}px`,
                     height: "100vh",
                     overflow: "auto",
                     bgcolor: theme.palette.mode === "light" ? "#f5f5f7" : "background.default",

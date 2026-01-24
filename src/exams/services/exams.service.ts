@@ -38,6 +38,7 @@ export interface Exam {
   downloads: number;
   fileUrl: string;
   fileName: string;
+  fileSize: number,
   filePath: string; // Path en Storage (ej: "exams/userId/filename.pdf")
 }
 
@@ -130,7 +131,7 @@ export const getUserExams = async (userId: string): Promise<Exam[]> => {
       course: data.course,
       teacher: data.teacher,
       cycle: data.cycle,
-      schoolTerm: data.semester,
+      schoolTerm: data.schoolTerm || data.semester,
       unit: data.unit,
       section: data.section,
       uploadDate: data.uploadDate?.toDate() || new Date(),
@@ -138,7 +139,7 @@ export const getUserExams = async (userId: string): Promise<Exam[]> => {
       downloads: data.downloads || 0,
       fileUrl: data.fileUrl,
       fileName: data.fileName,
-      fileSize: data.file.size,
+      fileSize: data.fileSize || data.file?.size || 0,
       filePath,
     } as Exam;
   });
@@ -176,7 +177,7 @@ export const getAllExams = async (filters?: {
       course: data.course,
       teacher: data.teacher,
       cycle: data.cycle,
-      schoolTerm: data.semester,
+      schoolTerm: data.schoolTerm || data.semester,
       unit: data.unit,
       section: data.section,
       uploadDate: data.uploadDate?.toDate() || new Date(),
@@ -184,7 +185,7 @@ export const getAllExams = async (filters?: {
       downloads: data.downloads || 0,
       fileUrl: data.fileUrl,
       fileName: data.fileName,
-      fileSize: data.file.size,
+      fileSize: data.fileSize || data.file?.size || 0,
       filePath,
     } as Exam;
   });

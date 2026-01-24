@@ -1,6 +1,5 @@
 import {
   Box,
-  Container,
   Typography,
   Grid,
   Card,
@@ -13,6 +12,7 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 // import { useAuth } from "@/auth/context/useAuth";
 // import { Button } from "@mui/material";
 import Header from "../components/Header";
+import { PageContainer } from "../components/PageContainer";
 
 
 const DashboardPage = () => {
@@ -23,7 +23,7 @@ const DashboardPage = () => {
   // const { role } = useAuth();
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <PageContainer>
 
       <Header 
         title="Mi Dashboard" 
@@ -132,7 +132,7 @@ const DashboardPage = () => {
       <Button variant="contained">Subir Profesores</Button>
     )}
     {role} */}
-    </Container>
+    </PageContainer>
   );
 };
 

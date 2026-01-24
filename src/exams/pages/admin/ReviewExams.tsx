@@ -48,7 +48,7 @@ interface PendingExam {
   uploadedBy?: string;
   uploadedByEmail?: string;
   uploadDate?: Date;
-  fileSize?: string;
+  fileSize?: number;
   description?: string;
   status: "pending" | "approved" | "rejected";
   filePath?: string;
