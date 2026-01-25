@@ -55,7 +55,7 @@ export default function UploadExamForm() {
   });
   const [filteredCycles, setFilteredCycles] = useState<string[]>([]);
 
-  const unities = ["Unidad I", "Unidad II", "Unidad III"];
+  const unities = ["Unidad I", "Unidad II", "Unidad III", "Sustitutorio", "Aplazado"];
   const sections = ["A", "B"];
   const schoolTerm = generateSchoolTerms(2019, 2025);
   const allCycles = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
