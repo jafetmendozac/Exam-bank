@@ -17,6 +17,8 @@ import { useNavigate } from "react-router-dom";
 import { getTeachers } from "@/exams/services/teachers.service";
 import { getCourses } from "@/exams/services/courses.service";
 import { uploadExam } from "@/exams/services/exams.service";
+import { PageContainer } from "@/exams/components/PageContainer";
+import Header from '../../components/Header';
 
 function generateSchoolTerms(startYear: number, endYear: number): string[] {
   const periods = ["EXT", "I", "II"];
@@ -53,7 +55,7 @@ export default function UploadExamForm() {
   });
   const [filteredCycles, setFilteredCycles] = useState<string[]>([]);
 
-  const unities = ["Unidad I", "Unidad II", "Unidad III"];
+  const unities = ["Unidad I", "Unidad II", "Unidad III", "Sustitutorio", "Aplazado"];
   const sections = ["A", "B"];
   const schoolTerm = generateSchoolTerms(2019, 2025);
   const allCycles = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
@@ -194,170 +196,175 @@ export default function UploadExamForm() {
   };
 
   return (
-    <Box
+
+    <PageContainer
+    >
+      <Header title="Subir Examen" subtitle="Agrega un nuevo examen al banco de exámenes"/>
+      <Box
       sx={{
-        minHeight: "calc(100vh - 65px)",
+        // minHeight: "calc(100vh - 65px)",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        p: 2,
+        // p: 2,
       }}
-    >
-      <Card sx={{ maxWidth: 700, width: "100%", borderRadius: 2 }}>
-        <CardContent component="form" onSubmit={submitExam} sx={{ p: 4 }}>
-          <Typography variant="h5" fontWeight={600} mb={3}>
-            Subir Examen
-          </Typography>
+      >
+        <Card sx={{ maxWidth: 700, width: "100%", borderRadius: 2 }}>
+          <CardContent component="form" onSubmit={submitExam} sx={{ p: 4 }}>
+            <Typography variant="h5" fontWeight={600} mb={3}>
+              Subir Examen
+            </Typography>
 
-          {error && (
-            <Alert severity="error" sx={{ mb: 3 }}>
-              {error}
-            </Alert>
-          )}
+            {error && (
+              <Alert severity="error" sx={{ mb: 3 }}>
+                {error}
+              </Alert>
+            )}
 
-          {success && (
-            <Alert severity="success" sx={{ mb: 3 }}>
-              ¡Examen subido exitosamente! Redirigiendo a Mis Exámenes...
-            </Alert>
-          )}
+            {success && (
+              <Alert severity="success" sx={{ mb: 3 }}>
+                ¡Examen subido exitosamente! Redirigiendo a Mis Exámenes...
+              </Alert>
+            )}
 
-          {/* Unidad - Semestre */}
-          <Grid container spacing={3}>
+            {/* Unidad - Semestre */}
+            <Grid container spacing={3}>
 
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                select
-                fullWidth
-                label="Periodo"
-                value={exam.semestre}
-                onChange={handlePeriodChange}
-              >
-                {schoolTerm.map((s) => (
-                  <MenuItem key={s} value={s}>
-                    {s}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField
+                  select
+                  fullWidth
+                  label="Periodo"
+                  value={exam.semestre}
+                  onChange={handlePeriodChange}
+                >
+                  {schoolTerm.map((s) => (
+                    <MenuItem key={s} value={s}>
+                      {s}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
 
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                select
-                fullWidth
-                label="Ciclo"
-                value={exam.ciclo}
-                onChange={handleChange("ciclo")}
-                disabled={!exam.semestre}
-              >
-                {filteredCycles.map((c) => (
-                  <MenuItem key={c} value={c}>
-                    {c}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField
+                  select
+                  fullWidth
+                  label="Ciclo"
+                  value={exam.ciclo}
+                  onChange={handleChange("ciclo")}
+                  disabled={!exam.semestre}
+                >
+                  {filteredCycles.map((c) => (
+                    <MenuItem key={c} value={c}>
+                      {c}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
 
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                select
-                fullWidth
-                label="Unidad"
-                value={exam.unidad}
-                onChange={handleChange("unidad")}
-              >
-                {unities.map((u) => (
-                  <MenuItem key={u} value={u}>
-                    {u}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField
+                  select
+                  fullWidth
+                  label="Unidad"
+                  value={exam.unidad}
+                  onChange={handleChange("unidad")}
+                >
+                  {unities.map((u) => (
+                    <MenuItem key={u} value={u}>
+                      {u}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
 
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                select
-                fullWidth
-                label="Sección"
-                value={exam.seccion}
-                onChange={handleChange("seccion")}
-              >
-                {sections.map((s) => (
-                  <MenuItem key={s} value={s}>
-                    {s}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField
+                  select
+                  fullWidth
+                  label="Sección"
+                  value={exam.seccion}
+                  onChange={handleChange("seccion")}
+                >
+                  {sections.map((s) => (
+                    <MenuItem key={s} value={s}>
+                      {s}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
 
-            {/* Profesor */}
-            <Grid size={{ xs: 12 }}>
-              <Autocomplete
-                options={teachers}
-                value={exam.profesor || null}
-                onChange={(_, newValue: string | null) => {
-                  setExam({ ...exam, profesor: newValue || "" });
-                }}
-                loading={loadingData}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Profesor"
-                    fullWidth
-                    placeholder="Selecciona un profesor"
-                  />
+              {/* Profesor */}
+              <Grid size={{ xs: 12 }}>
+                <Autocomplete
+                  options={teachers}
+                  value={exam.profesor || null}
+                  onChange={(_, newValue: string | null) => {
+                    setExam({ ...exam, profesor: newValue || "" });
+                  }}
+                  loading={loadingData}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Profesor"
+                      fullWidth
+                      placeholder="Selecciona un profesor"
+                    />
+                  )}
+                />
+              </Grid>
+
+              {/* Ciclo - Curso */}
+
+              <Grid size={{ xs: 12 }}>
+                <Autocomplete
+                  options={courses}
+                  value={exam.curso || null}
+                  onChange={(_, newValue: string | null) => {
+                    setExam({ ...exam, curso: newValue || "" });
+                  }}
+                  loading={loadingData}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Curso"
+                      fullWidth
+                      placeholder="Selecciona un curso"
+                    />
+                  )}
+                />
+              </Grid>
+
+              {/* Archivo */}
+              <Grid size={{ xs: 12 }}>
+                <Button component="label" variant="outlined" fullWidth>
+                  {exam.file ? exam.file.name : "Subir documento PDF"}
+                  <input hidden type="file" accept="application/pdf" onChange={handleFile} />
+                </Button>
+                {exam.file && (
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
+                    Archivo seleccionado: {exam.file.name} ({(exam.file.size / 1024 / 1024).toFixed(2)} MB)
+                  </Typography>
                 )}
-              />
-            </Grid>
+              </Grid>
 
-            {/* Ciclo - Curso */}
-
-            <Grid size={{ xs: 12 }}>
-              <Autocomplete
-                options={courses}
-                value={exam.curso || null}
-                onChange={(_, newValue: string | null) => {
-                  setExam({ ...exam, curso: newValue || "" });
-                }}
-                loading={loadingData}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Curso"
-                    fullWidth
-                    placeholder="Selecciona un curso"
-                  />
-                )}
-              />
+              {/* Submit */}
+              <Grid size={{ xs: 12 }}>
+                <Button
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  size="large"
+                  disabled={loading || success}
+                >
+                  {loading ? <CircularProgress size={24} /> : "Subir Examen"}
+                </Button>
+              </Grid>
             </Grid>
-
-            {/* Archivo */}
-            <Grid size={{ xs: 12 }}>
-              <Button component="label" variant="outlined" fullWidth>
-                {exam.file ? exam.file.name : "Subir documento PDF"}
-                <input hidden type="file" accept="application/pdf" onChange={handleFile} />
-              </Button>
-              {exam.file && (
-                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
-                  Archivo seleccionado: {exam.file.name} ({(exam.file.size / 1024 / 1024).toFixed(2)} MB)
-                </Typography>
-              )}
-            </Grid>
-
-            {/* Submit */}
-            <Grid size={{ xs: 12 }}>
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                size="large"
-                disabled={loading || success}
-              >
-                {loading ? <CircularProgress size={24} /> : "Subir Examen"}
-              </Button>
-            </Grid>
-          </Grid>
-        </CardContent>
-      </Card>
-    </Box>
+          </CardContent>
+        </Card>
+      </Box>
+    </PageContainer>
   );
 }

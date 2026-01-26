@@ -168,7 +168,7 @@ export default function AdminPage() {
         } catch (error) {
             setSnackbar({
                 open: true,
-                message: "Error al aprobar examen",
+                message: `Error al aprobar examen, ${error}`,
                 severity: "error",
             });
         }
@@ -191,7 +191,7 @@ export default function AdminPage() {
         } catch (error) {
             setSnackbar({
                 open: true,
-                message: "Error al rechazar examen",
+                message: `Error al rechazar examen, ${error}`,
                 severity: "error",
             });
         }
@@ -208,7 +208,7 @@ export default function AdminPage() {
         } catch (error) {
             setSnackbar({
                 open: true,
-                message: "Error al abrir archivo",
+                message: `Error al abrir archivo, ${error}`,
                 severity: "error",
             });
         }
