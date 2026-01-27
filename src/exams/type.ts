@@ -26,6 +26,7 @@ export interface Exam {
   fileName: string;
   fileSize: number,
   filePath: string;
+  schoolTerm: string
 }
 
 /// EXAMS.COURSE ///

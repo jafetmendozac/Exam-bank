@@ -18,6 +18,8 @@ import {
   Alert,
   Snackbar,
   CircularProgress,
+  MenuItem,
+  Autocomplete,
 } from "@mui/material";
 import {
   CheckCircle,
@@ -28,6 +30,7 @@ import {
   CalendarToday,
   School,
   Description,
+  Edit,
 } from "@mui/icons-material";
 
 import Header from "../../components/Header";
@@ -36,8 +39,11 @@ import {
   getAllExams,
   updateExamStatus,
   getExamDownloadURL,
-  type Exam as ServiceExam,
+  updateExam,
 } from "../../services/exams.service";
+import { getTeachers } from "../../services/teachers.service";
+import { getCourses } from "../../services/courses.service";
+import type { Exam as ServiceExam } from "../../type";
 
 interface PendingExam {
   id: string;
@@ -45,6 +51,8 @@ interface PendingExam {
   course?: string;
   teacher?: string;
   cycle?: string;
+  unit?: string;
+  section?: string;
   uploadedBy?: string;
   uploadedByEmail?: string;
   uploadDate?: Date;
@@ -54,6 +62,27 @@ interface PendingExam {
   filePath?: string;
   fileUrl?: string;
   fileName?: string;
+  schoolTerm: string
+}
+
+interface EditFormData {
+  unit: string;
+  section: string;
+  teacher: string;
+  cycle: string;
+  course: string;
+  schoolTerm: string;
+}
+
+function generateSchoolTerms(startYear: number, endYear: number): string[] {
+  const periods = ["EXT", "I", "II"];
+  const terms = [];
+  for (let year = startYear; year <= endYear; year++) {
+    for (const period of periods) {
+      terms.push(`${year}-${period}`);
+    }
+  }
+  return terms;
 }
 
 export default function ReviewExams() {
@@ -61,9 +90,29 @@ export default function ReviewExams() {
   const [selectedExam, setSelectedExam] = useState<PendingExam | null>(null);
   const [openApproveDialog, setOpenApproveDialog] = useState(false);
   const [openRejectDialog, setOpenRejectDialog] = useState(false);
+  const [openEditDialog, setOpenEditDialog] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
-  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" as "success" | "error" });
+  const [snackbar, setSnackbar] = useState({ 
+    open: false, 
+    message: "", 
+    severity: "success" as "success" | "error" 
+  });
   const [loading, setLoading] = useState(true);
+  const [teachers, setTeachers] = useState<string[]>([]);
+  const [courses, setCourses] = useState<string[]>([]);
+  const [loadingData, setLoadingData] = useState(false);
+  const [editForm, setEditForm] = useState<EditFormData>({
+    unit: "",
+    section: "",
+    teacher: "",
+    cycle: "",
+    course: "",
+    schoolTerm: "",
+  });
+
+  const unities = ["Unidad I", "Unidad II", "Unidad III", "Sustitutorio", "Aplazado"];
+  const sections = ["A", "B"];
+  const allCycles = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
 
   useEffect(() => {
     let mounted = true;
@@ -80,6 +129,8 @@ export default function ReviewExams() {
           course: r.course,
           teacher: r.teacher,
           cycle: r.cycle,
+          unit: r.unit,
+          section: r.section,
           uploadedBy: r.userId,
           uploadDate: r.uploadDate instanceof Date
             ? r.uploadDate
@@ -87,6 +138,7 @@ export default function ReviewExams() {
               ? new Date(r.uploadDate as string | number)
               : undefined,
           description: `${r.unit || ""}${r.section ? ` - ${r.section}` : ""}`,
+          schoolTerm: r.schoolTerm,
           status: r.status,
           filePath: r.filePath,
           fileUrl: r.fileUrl,
@@ -110,6 +162,35 @@ export default function ReviewExams() {
     };
   }, []);
 
+  const handleEdit = async (exam: PendingExam) => {
+    setSelectedExam(exam);
+    setEditForm({
+      unit: exam.unit || "",
+      section: exam.section || "",
+      teacher: exam.teacher || "",
+      cycle: exam.cycle || "",
+      course: exam.course || "",
+      schoolTerm: exam.schoolTerm || "",
+    });
+    
+    // Cargar datos de teachers y courses
+    setLoadingData(true);
+    try {
+      const [teachersData, coursesData] = await Promise.all([
+        getTeachers(),
+        getCourses(),
+      ]);
+      setTeachers(teachersData);
+      setCourses(coursesData);
+    } catch (err) {
+      console.error("Error al cargar datos:", err);
+    } finally {
+      setLoadingData(false);
+    }
+    
+    setOpenEditDialog(true);
+  };
+
   const handleApprove = (exam: PendingExam) => {
     setSelectedExam(exam);
     setOpenApproveDialog(true);
@@ -120,16 +201,67 @@ export default function ReviewExams() {
     setOpenRejectDialog(true);
   };
 
+  const confirmEdit = async () => {
+    if (!selectedExam) return;
+    
+    try {
+      // ✅ Ahora sí puedes usar esta función
+      await updateExam(selectedExam.id, editForm);
+      
+      // Actualizar el examen en el estado local
+      setExams((prev) =>
+        prev.map((e) =>
+          e.id === selectedExam.id
+            ? {
+                ...e,
+                unit: editForm.unit,
+                section: editForm.section,
+                teacher: editForm.teacher,
+                cycle: editForm.cycle,
+                course: editForm.course,
+                schoolTerm: editForm.schoolTerm,
+                description: `${editForm.unit}${editForm.section ? ` - ${editForm.section}` : ""}`,
+                title: `${editForm.course} - ${editForm.schoolTerm} - ${editForm.unit}`, // Actualizar también el título
+              }
+            : e
+        )
+      );
+      
+      setSnackbar({ 
+        open: true, 
+        message: `Examen "${selectedExam.title}" actualizado correctamente`, 
+        severity: "success" 
+      });
+      setOpenEditDialog(false);
+      setSelectedExam(null);
+    } catch (err) {
+      console.error(err);
+      setSnackbar({ 
+        open: true, 
+        message: `Error al actualizar el examen`, 
+        severity: "error" 
+      });
+    }
+  };
+
   const confirmApprove = () => {
     if (!selectedExam) return;
     updateExamStatus(selectedExam.id, "approved")
       .then(() => {
         setExams((prev) => prev.filter((e) => e.id !== selectedExam.id));
-        setSnackbar({ open: true, message: `El examen fue "${selectedExam.title}" aprobado`, severity: "success" });
+        setSnackbar({ 
+          open: true, 
+          message: `El examen "${selectedExam.title}" fue aprobado`, 
+          severity: "success" 
+        });
       })
       .catch((err) => {
         console.error(err);
-        setSnackbar({ open: true, message: `Error al aprobar el examen`, severity: "error" });
+        setSnackbar({ 
+          open: true, 
+          message: `Error al aprobar el examen`, 
+          severity: "error" 
+        });
       })
       .finally(() => {
         setOpenApproveDialog(false);
@@ -143,12 +275,20 @@ export default function ReviewExams() {
     updateExamStatus(selectedExam.id, "rejected")
       .then(() => {
         setExams((prev) => prev.filter((e) => e.id !== selectedExam.id));
-        setSnackbar({ open: true, message: `El examen fue "${selectedExam.title}" rechazado`, severity: "error" });
+        setSnackbar({ 
+          open: true, 
+          message: `El examen "${selectedExam.title}" fue rechazado`, 
+          severity: "error" 
+        });
         setRejectReason("");
       })
       .catch((err) => {
         console.error(err);
-        setSnackbar({ open: true, message: `Error al rechazar el examen`, severity: "error" });
+        setSnackbar({ 
+          open: true, 
+          message: `Error al rechazar el examen`, 
+          severity: "error" 
+        });
       })
       .finally(() => {
         setOpenRejectDialog(false);
@@ -160,17 +300,29 @@ export default function ReviewExams() {
     try {
       const url = exam.fileUrl || (exam.filePath ? await getExamDownloadURL(exam.filePath) : undefined);
       if (url) window.open(url, "_blank");
-      else setSnackbar({ open: true, message: "No hay ninguna URL de archivo disponible", severity: "error" });
+      else setSnackbar({ 
+        open: true, 
+        message: "No hay ninguna URL de archivo disponible", 
+        severity: "error" 
+      });
     } catch (err) {
       console.error(err);
-      setSnackbar({ open: true, message: "Error al abrir el archivo", severity: "error" });
+      setSnackbar({ 
+        open: true, 
+        message: "Error al abrir el archivo", 
+        severity: "error" 
+      });
     }
   };
 
   const handleDownload = async (exam: PendingExam) => {
     try {
       const url = exam.fileUrl || (exam.filePath ? await getExamDownloadURL(exam.filePath) : undefined);
-      if (!url) return setSnackbar({ open: true, message: "No hay ninguna URL de archivo disponible", severity: "error" });
+      if (!url) return setSnackbar({ 
+        open: true, 
+        message: "No hay ninguna URL de archivo disponible", 
+        severity: "error" 
+      });
       const a = document.createElement("a");
       a.href = url;
       a.download = exam.fileName || exam.title;
@@ -180,7 +332,11 @@ export default function ReviewExams() {
       a.remove();
     } catch (err) {
       console.error(err);
-      setSnackbar({ open: true, message: "Error al descargar el archivo", severity: "error" });
+      setSnackbar({ 
+        open: true, 
+        message: "Error al descargar el archivo", 
+        severity: "error" 
+      });
     }
   };
 
@@ -189,7 +345,10 @@ export default function ReviewExams() {
   if (loading) {
     return (
       <PageContainer>
-        <Header title="Revisar Exámenes" subtitle="Revisa tus examenes pendientes por aprobar o rechazar" />
+        <Header 
+          title="Revisar Exámenes" 
+          subtitle="Revisa tus examenes pendientes por aprobar o rechazar" 
+        />
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
           <CircularProgress />
         </Box>
@@ -199,7 +358,10 @@ export default function ReviewExams() {
 
   return (
     <PageContainer>
-      <Header title="Revisar Exámenes" subtitle="Revisa tus examenes pendientes por aprobar o rechazar" />
+      <Header 
+        title="Revisar Exámenes" 
+        subtitle="Revisa tus examenes pendientes por aprobar o rechazar" 
+      />
 
       <Box sx={{ mt: 3 }}>
         <Alert severity="info" sx={{ mb: 2 }}>
@@ -240,7 +402,7 @@ export default function ReviewExams() {
                               <Chip label={exam.cycle} size="small" variant="outlined" />
                             </Box>
                             <Typography variant="body2" color="text.secondary" paragraph>
-                              {exam.description}
+                              {exam.schoolTerm}  {exam.description}
                             </Typography>
                             <Divider sx={{ my: 2 }} />
                             <Grid container spacing={2}>
@@ -294,17 +456,49 @@ export default function ReviewExams() {
                           <Typography variant="subtitle2" fontWeight={600} gutterBottom>
                             Acciones
                           </Typography>
-                          <Button variant="outlined" startIcon={<Visibility />} fullWidth onClick={() => handlePreview(exam)}>
+                          <Button 
+                            variant="outlined" 
+                            startIcon={<Visibility />} 
+                            fullWidth 
+                            onClick={() => handlePreview(exam)}
+                          >
                             Vista Previa
                           </Button>
-                          <Button variant="outlined" startIcon={<Download />} fullWidth onClick={() => handleDownload(exam)}>
+                          <Button 
+                            variant="outlined" 
+                            startIcon={<Download />} 
+                            fullWidth 
+                            onClick={() => handleDownload(exam)}
+                          >
                             Descargar
                           </Button>
                           <Divider sx={{ my: 1 }} />
-                          <Button variant="contained" color="success" startIcon={<CheckCircle />} fullWidth onClick={() => handleApprove(exam)}>
+                          <Button 
+                            variant="outlined" 
+                            color="info"
+                            startIcon={<Edit />} 
+                            fullWidth 
+                            onClick={() => handleEdit(exam)}
+                          >
+                            Editar
+                          </Button>
+                          <Divider sx={{ my: 1 }} />
+                          <Button 
+                            variant="contained" 
+                            color="success" 
+                            startIcon={<CheckCircle />} 
+                            fullWidth 
+                            onClick={() => handleApprove(exam)}
+                          >
                             Aprobar
                           </Button>
-                          <Button variant="contained" color="error" startIcon={<Cancel />} fullWidth onClick={() => handleReject(exam)}>
+                          <Button 
+                            variant="contained" 
+                            color="error" 
+                            startIcon={<Cancel />} 
+                            fullWidth 
+                            onClick={() => handleReject(exam)}
+                          >
                             Rechazar
                           </Button>
                         </Paper>
@@ -317,6 +511,126 @@ export default function ReviewExams() {
           </Grid>
         )}
 
+        {/* Dialog de Edición */}
+        <Dialog open={openEditDialog} onClose={() => setOpenEditDialog(false)} maxWidth="md" fullWidth>
+          <DialogTitle>Editar Examen</DialogTitle>
+          <DialogContent>
+            <Box sx={{ mt: 2 }}>
+              <Grid container spacing={3}>
+
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
+                    select
+                    fullWidth
+                    label="Periodo"
+                    value={editForm.schoolTerm}
+                    onChange={(e) => setEditForm({ ...editForm, schoolTerm: e.target.value })}
+                  >
+                    {generateSchoolTerms(2019, 2025).map((term) => (
+                      <MenuItem key={term} value={term}>
+                        {term}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
+                    select
+                    fullWidth
+                    label="Ciclo"
+                    value={editForm.cycle}
+                    onChange={(e) => setEditForm({ ...editForm, cycle: e.target.value })}
+                  >
+                    {allCycles.map((c) => (
+                      <MenuItem key={c} value={c}>
+                        {c}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
+                    select
+                    fullWidth
+                    label="Unidad"
+                    value={editForm.unit}
+                    onChange={(e) => setEditForm({ ...editForm, unit: e.target.value })}
+                  >
+                    {unities.map((u) => (
+                      <MenuItem key={u} value={u}>
+                        {u}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
+                    select
+                    fullWidth
+                    label="Sección"
+                    value={editForm.section}
+                    onChange={(e) => setEditForm({ ...editForm, section: e.target.value })}
+                  >
+                    {sections.map((s) => (
+                      <MenuItem key={s} value={s}>
+                        {s}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+
+                <Grid size={{ xs: 12 }}>
+                  <Autocomplete
+                    options={teachers}
+                    value={editForm.teacher || null}
+                    onChange={(_, newValue: string | null) => {
+                      setEditForm({ ...editForm, teacher: newValue || "" });
+                    }}
+                    loading={loadingData}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Profesor"
+                        fullWidth
+                        placeholder="Selecciona un profesor"
+                      />
+                    )}
+                  />
+                </Grid>
+
+                <Grid size={{ xs: 12 }}>
+                  <Autocomplete
+                    options={courses}
+                    value={editForm.course || null}
+                    onChange={(_, newValue: string | null) => {
+                      setEditForm({ ...editForm, course: newValue || "" });
+                    }}
+                    loading={loadingData}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Curso"
+                        fullWidth
+                        placeholder="Selecciona un curso"
+                      />
+                    )}
+                  />
+                </Grid>
+              </Grid>
+            </Box>
+          </DialogContent>
+          <DialogActions sx={{ p: 3 }}>
+            <Button onClick={() => setOpenEditDialog(false)}>Cancelar</Button>
+            <Button variant="contained" onClick={confirmEdit}>
+              Guardar Cambios
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Dialog de Aprobación */}
         <Dialog open={openApproveDialog} onClose={() => setOpenApproveDialog(false)} maxWidth="sm" fullWidth>
           <DialogTitle>Aprobar Examen</DialogTitle>
           <DialogContent>
@@ -348,6 +662,7 @@ export default function ReviewExams() {
           </DialogActions>
         </Dialog>
 
+        {/* Dialog de Rechazo */}
         <Dialog open={openRejectDialog} onClose={() => setOpenRejectDialog(false)} maxWidth="sm" fullWidth>
           <DialogTitle>Rechazar Examen</DialogTitle>
           <DialogContent>
@@ -371,8 +686,8 @@ export default function ReviewExams() {
               fullWidth
               multiline
               rows={4}
-              label="Rejection Reason"
-              placeholder="Please explain why this exam is being rejected..."
+              label="Motivo del Rechazo"
+              placeholder="Por favor explica por qué este examen está siendo rechazado..."
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
               required
@@ -383,8 +698,13 @@ export default function ReviewExams() {
             </Alert>
           </DialogContent>
           <DialogActions sx={{ p: 3 }}>
-            <Button onClick={() => setOpenRejectDialog(false)}>Cancel</Button>
-            <Button variant="contained" color="error" onClick={confirmReject} disabled={!rejectReason.trim()}>
+            <Button onClick={() => setOpenRejectDialog(false)}>Cancelar</Button>
+            <Button 
+              variant="contained" 
+              color="error" 
+              onClick={confirmReject} 
+              disabled={!rejectReason.trim()}
+            >
               Confirmar Rechazo
             </Button>
           </DialogActions>
