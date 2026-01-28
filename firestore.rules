@@ -95,9 +95,13 @@ service cloud.firestore {
       allow create: if request.auth != null
         && request.auth.token.email.matches('.*@unitru.edu.pe$');
 
-      // Actualizar / borrar: solo el que lo subió
-      allow update, delete: if request.auth != null
-        && request.auth.uid == resource.data.uploadedBy;
+      // Actualizar: el que lo subió O usuarios @unitru (para aprobar/rechazar)
+      allow update: if request.auth != null
+        && (request.auth.uid == resource.data.userId || isUnitru());
+      
+      // Borrar: solo el que lo subió
+      allow delete: if request.auth != null
+        && request.auth.uid == resource.data.userId;
     }
     
     

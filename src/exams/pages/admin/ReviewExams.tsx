@@ -35,15 +35,15 @@ import {
 
 import Header from "../../components/Header";
 import { PageContainer } from "../../components/PageContainer";
+import { getTeachers } from "../../services/teachers.service";
+import { getCourses } from "../../services/courses.service";
 import {
   getAllExams,
   updateExamStatus,
   getExamDownloadURL,
   updateExam,
+  type Exam as ServiceExam,  // ✅ Desde el servicio
 } from "../../services/exams.service";
-import { getTeachers } from "../../services/teachers.service";
-import { getCourses } from "../../services/courses.service";
-import type { Exam as ServiceExam } from "../../type";
 
 interface PendingExam {
   id: string;
@@ -92,10 +92,10 @@ export default function ReviewExams() {
   const [openRejectDialog, setOpenRejectDialog] = useState(false);
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
-  const [snackbar, setSnackbar] = useState({ 
-    open: false, 
-    message: "", 
-    severity: "success" as "success" | "error" 
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success" as "success" | "error"
   });
   const [loading, setLoading] = useState(true);
   const [teachers, setTeachers] = useState<string[]>([]);
@@ -172,7 +172,7 @@ export default function ReviewExams() {
       course: exam.course || "",
       schoolTerm: exam.schoolTerm || "",
     });
-    
+
     // Cargar datos de teachers y courses
     setLoadingData(true);
     try {
@@ -187,7 +187,7 @@ export default function ReviewExams() {
     } finally {
       setLoadingData(false);
     }
-    
+
     setOpenEditDialog(true);
   };
 
@@ -203,43 +203,43 @@ export default function ReviewExams() {
 
   const confirmEdit = async () => {
     if (!selectedExam) return;
-    
+
     try {
       // ✅ Ahora sí puedes usar esta función
       await updateExam(selectedExam.id, editForm);
-      
+
       // Actualizar el examen en el estado local
       setExams((prev) =>
         prev.map((e) =>
           e.id === selectedExam.id
             ? {
-                ...e,
-                unit: editForm.unit,
-                section: editForm.section,
-                teacher: editForm.teacher,
-                cycle: editForm.cycle,
-                course: editForm.course,
-                schoolTerm: editForm.schoolTerm,
-                description: `${editForm.unit}${editForm.section ? ` - ${editForm.section}` : ""}`,
-                title: `${editForm.course} - ${editForm.schoolTerm} - ${editForm.unit}`, // Actualizar también el título
-              }
+              ...e,
+              unit: editForm.unit,
+              section: editForm.section,
+              teacher: editForm.teacher,
+              cycle: editForm.cycle,
+              course: editForm.course,
+              schoolTerm: editForm.schoolTerm,
+              description: `${editForm.unit}${editForm.section ? ` - ${editForm.section}` : ""}`,
+              title: `${editForm.course} - ${editForm.schoolTerm} - ${editForm.unit}`, // Actualizar también el título
+            }
             : e
         )
       );
-      
-      setSnackbar({ 
-        open: true, 
-        message: `Examen "${selectedExam.title}" actualizado correctamente`, 
-        severity: "success" 
+
+      setSnackbar({
+        open: true,
+        message: `Examen "${selectedExam.title}" actualizado correctamente`,
+        severity: "success"
       });
       setOpenEditDialog(false);
       setSelectedExam(null);
     } catch (err) {
       console.error(err);
-      setSnackbar({ 
-        open: true, 
-        message: `Error al actualizar el examen`, 
-        severity: "error" 
+      setSnackbar({
+        open: true,
+        message: `Error al actualizar el examen`,
+        severity: "error"
       });
     }
   };
@@ -249,18 +249,18 @@ export default function ReviewExams() {
     updateExamStatus(selectedExam.id, "approved")
       .then(() => {
         setExams((prev) => prev.filter((e) => e.id !== selectedExam.id));
-        setSnackbar({ 
-          open: true, 
-          message: `El examen "${selectedExam.title}" fue aprobado`, 
-          severity: "success" 
+        setSnackbar({
+          open: true,
+          message: `El examen "${selectedExam.title}" fue aprobado`,
+          severity: "success"
         });
       })
       .catch((err) => {
         console.error(err);
-        setSnackbar({ 
-          open: true, 
-          message: `Error al aprobar el examen`, 
-          severity: "error" 
+        setSnackbar({
+          open: true,
+          message: `Error al aprobar el examen`,
+          severity: "error"
         });
       })
       .finally(() => {
@@ -275,19 +275,19 @@ export default function ReviewExams() {
     updateExamStatus(selectedExam.id, "rejected")
       .then(() => {
         setExams((prev) => prev.filter((e) => e.id !== selectedExam.id));
-        setSnackbar({ 
-          open: true, 
-          message: `El examen "${selectedExam.title}" fue rechazado`, 
-          severity: "error" 
+        setSnackbar({
+          open: true,
+          message: `El examen "${selectedExam.title}" fue rechazado`,
+          severity: "error"
         });
         setRejectReason("");
       })
       .catch((err) => {
         console.error(err);
-        setSnackbar({ 
-          open: true, 
-          message: `Error al rechazar el examen`, 
-          severity: "error" 
+        setSnackbar({
+          open: true,
+          message: `Error al rechazar el examen`,
+          severity: "error"
         });
       })
       .finally(() => {
@@ -300,17 +300,17 @@ export default function ReviewExams() {
     try {
       const url = exam.fileUrl || (exam.filePath ? await getExamDownloadURL(exam.filePath) : undefined);
       if (url) window.open(url, "_blank");
-      else setSnackbar({ 
-        open: true, 
-        message: "No hay ninguna URL de archivo disponible", 
-        severity: "error" 
+      else setSnackbar({
+        open: true,
+        message: "No hay ninguna URL de archivo disponible",
+        severity: "error"
       });
     } catch (err) {
       console.error(err);
-      setSnackbar({ 
-        open: true, 
-        message: "Error al abrir el archivo", 
-        severity: "error" 
+      setSnackbar({
+        open: true,
+        message: "Error al abrir el archivo",
+        severity: "error"
       });
     }
   };
@@ -318,10 +318,10 @@ export default function ReviewExams() {
   const handleDownload = async (exam: PendingExam) => {
     try {
       const url = exam.fileUrl || (exam.filePath ? await getExamDownloadURL(exam.filePath) : undefined);
-      if (!url) return setSnackbar({ 
-        open: true, 
-        message: "No hay ninguna URL de archivo disponible", 
-        severity: "error" 
+      if (!url) return setSnackbar({
+        open: true,
+        message: "No hay ninguna URL de archivo disponible",
+        severity: "error"
       });
       const a = document.createElement("a");
       a.href = url;
@@ -332,10 +332,10 @@ export default function ReviewExams() {
       a.remove();
     } catch (err) {
       console.error(err);
-      setSnackbar({ 
-        open: true, 
-        message: "Error al descargar el archivo", 
-        severity: "error" 
+      setSnackbar({
+        open: true,
+        message: "Error al descargar el archivo",
+        severity: "error"
       });
     }
   };
@@ -345,9 +345,9 @@ export default function ReviewExams() {
   if (loading) {
     return (
       <PageContainer>
-        <Header 
-          title="Revisar Exámenes" 
-          subtitle="Revisa tus examenes pendientes por aprobar o rechazar" 
+        <Header
+          title="Revisar Exámenes"
+          subtitle="Revisa tus examenes pendientes por aprobar o rechazar"
         />
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
           <CircularProgress />
@@ -358,9 +358,9 @@ export default function ReviewExams() {
 
   return (
     <PageContainer>
-      <Header 
-        title="Revisar Exámenes" 
-        subtitle="Revisa tus examenes pendientes por aprobar o rechazar" 
+      <Header
+        title="Revisar Exámenes"
+        subtitle="Revisa tus examenes pendientes por aprobar o rechazar"
       />
 
       <Box sx={{ mt: 3 }}>
@@ -456,47 +456,47 @@ export default function ReviewExams() {
                           <Typography variant="subtitle2" fontWeight={600} gutterBottom>
                             Acciones
                           </Typography>
-                          <Button 
-                            variant="outlined" 
-                            startIcon={<Visibility />} 
-                            fullWidth 
+                          <Button
+                            variant="outlined"
+                            startIcon={<Visibility />}
+                            fullWidth
                             onClick={() => handlePreview(exam)}
                           >
                             Vista Previa
                           </Button>
-                          <Button 
-                            variant="outlined" 
-                            startIcon={<Download />} 
-                            fullWidth 
+                          <Button
+                            variant="outlined"
+                            startIcon={<Download />}
+                            fullWidth
                             onClick={() => handleDownload(exam)}
                           >
                             Descargar
                           </Button>
                           <Divider sx={{ my: 1 }} />
-                          <Button 
-                            variant="outlined" 
+                          <Button
+                            variant="outlined"
                             color="info"
-                            startIcon={<Edit />} 
-                            fullWidth 
+                            startIcon={<Edit />}
+                            fullWidth
                             onClick={() => handleEdit(exam)}
                           >
                             Editar
                           </Button>
                           <Divider sx={{ my: 1 }} />
-                          <Button 
-                            variant="contained" 
-                            color="success" 
-                            startIcon={<CheckCircle />} 
-                            fullWidth 
+                          <Button
+                            variant="contained"
+                            color="success"
+                            startIcon={<CheckCircle />}
+                            fullWidth
                             onClick={() => handleApprove(exam)}
                           >
                             Aprobar
                           </Button>
-                          <Button 
-                            variant="contained" 
-                            color="error" 
-                            startIcon={<Cancel />} 
-                            fullWidth 
+                          <Button
+                            variant="contained"
+                            color="error"
+                            startIcon={<Cancel />}
+                            fullWidth
                             onClick={() => handleReject(exam)}
                           >
                             Rechazar
@@ -699,10 +699,10 @@ export default function ReviewExams() {
           </DialogContent>
           <DialogActions sx={{ p: 3 }}>
             <Button onClick={() => setOpenRejectDialog(false)}>Cancelar</Button>
-            <Button 
-              variant="contained" 
-              color="error" 
-              onClick={confirmReject} 
+            <Button
+              variant="contained"
+              color="error"
+              onClick={confirmReject}
               disabled={!rejectReason.trim()}
             >
               Confirmar Rechazo

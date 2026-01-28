@@ -249,6 +249,7 @@ export interface Exam {
   title: string;
   course: string;
   teacher: string;
+  schoolTerm: string;
   cycle: string;
   unit: string;
   section: string;
@@ -490,7 +491,7 @@ export const updateExam = async (
     // Obtener los valores actuales si no se proporcionaron
     // const examRef = doc(db, "exams", examId);
     const examDoc = await getDocs(query(collection(db, "exams"), where("__name__", "==", examId)));
-    
+
     if (!examDoc.empty) {
       const currentData = examDoc.docs[0].data();
       const newCourse = data.course || currentData.course;
