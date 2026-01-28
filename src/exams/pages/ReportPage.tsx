@@ -1,5 +1,6 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import type { FormEvent } from "react"
+import { useParams, useNavigate } from "react-router-dom"
 
 import {
   Paper,
@@ -21,15 +22,25 @@ import Header from "../components/Header"
 
 
 export default function ReportPage() {
+  const { examId } = useParams<{ examId: string }>()
+
   const [formData, setFormData] = useState({
     reportType: "",
     course: "",
-    examId: "",
+    examId: examId ?? "",
     priority: "medium",
     subject: "",
     description: "",
     email: "",
   })
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    // If report page is accessed without an examId, redirect to exams
+    if (!examId) {
+      navigate("/exams", { replace: true })
+    }
+  }, [examId, navigate])
 
   const [submitted, setSubmitted] = useState(false)
 
@@ -66,17 +77,6 @@ export default function ReportPage() {
     { value: "wrong_metadata", label: "Información incorrecta" },
     { value: "quality", label: "Mala calidad del archivo" },
     { value: "other", label: "Otro" },
-  ]
-
-  const courses = [
-    "Cálculo I",
-    "Cálculo II",
-    "Álgebra Lineal",
-    "Física I",
-    "Programación I",
-    "Estructuras de Datos",
-    "Base de Datos",
-    "Redes",
   ]
 
   return (
@@ -135,23 +135,6 @@ export default function ReportPage() {
               </Select>
             </FormControl>
 
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-              <FormControl fullWidth required>
-                <InputLabel>Curso</InputLabel>
-                <Select
-                  label="Curso"
-                  value={formData.course}
-                  onChange={(e) => handleChange("course", e.target.value)}
-                >
-                  {courses.map((c) => (
-                    <MenuItem key={c} value={c}>
-                      {c}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Stack>
-
             <TextField
               fullWidth
               required
@@ -178,11 +161,7 @@ export default function ReportPage() {
               size="large"
               startIcon={<Send />}
               disabled={
-                !formData.reportType ||
-                !formData.course ||
-                !formData.subject ||
-                !formData.description ||
-                !formData.email
+                !formData.reportType || !formData.course || !formData.subject || !formData.description
               }
             >
               Enviar Reporte

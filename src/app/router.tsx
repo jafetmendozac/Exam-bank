@@ -51,7 +51,7 @@ export const router = createBrowserRouter([
           { path: "/favorites", element: <FavoritesPage /> },
           { path: "/notifications", element: <NotificationsPage /> },
           { path: "/profile", element: <ProfilePage /> },
-          { path: "/report", element: <ReportPage /> },
+          { path: "/report/:examId", element: <ReportPage /> },
           { path: "/my-exams", element: <MyExamsPage /> },
 
           {

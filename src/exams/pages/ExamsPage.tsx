@@ -22,6 +22,7 @@ import {
   TextField,
 } from "@mui/material";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
 import Header from "../components/Header";
@@ -407,6 +408,7 @@ function GridView({
   selectedExams: string[];
   toggleExam: (id: string) => void;
 }) {
+  const navigate = useNavigate();
   return (
     <Grid container spacing={3}>
       {filteredExams.map((exam) => {
@@ -432,7 +434,7 @@ function GridView({
                   <Chip label={exam.course} size="small" />
                   <Typography variant="h6">{exam.title}</Typography>
                   <Typography variant="body2" color="text.secondary">
-                    {exam.unit} {exam.section ? `- ${exam.section}` : ""}
+                    {exam.schoolTerm} - {exam.unit} {exam.section ? `- ${exam.section}` : ""}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
                     Profesor: {exam.teacher}
@@ -443,14 +445,22 @@ function GridView({
                       : ""}
                   </Typography>
 
-                  <Stack direction="row" spacing={1} mt={1}>
-                    <Button size="small" variant="contained">
-                      Ver
-                    </Button>
-                    <Button size="small" variant="outlined">
-                      Descargar
-                    </Button>
-                  </Stack>
+                  <Box display="flex" alignItems="center" mt={1}>
+                    <Stack direction="row" spacing={1}>
+                      <Button size="small" variant="contained">
+                        Descargar
+                      </Button>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="error"
+                        onClick={() => navigate(`/report/${exam.id}`)}
+                      >
+                        Reportar
+                      </Button>
+                    </Stack>
+
+                  </Box>
                 </Stack>
               </CardContent>
             </Card>
