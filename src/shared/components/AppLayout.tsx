@@ -35,7 +35,7 @@ import {
   Person,
   Brightness4,
   Brightness7,
-  ReportProblem,
+  // ReportProblem,
   // Favorite,
   // CloudUpload,
   RateReview,
@@ -103,7 +103,7 @@ export default function AppLayout() {
   const userMenuItems: MenuItem[] = [
     { text: "Subir Examen", icon: <Upload />, path: "/upload" },
     // { text: "Mis Examenes", icon: <CloudUpload />, path: "/my-exams" },
-    { text: "Reportar", icon: <ReportProblem />, path: "/report" }
+    // { text: "Reportar", icon: <ReportProblem />, path: "/report" }
   ]
 
   const adminMenuItems: MenuItem[] = [
