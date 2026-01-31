@@ -1,0 +1,159 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // This rule allows anyone with your Firestore database reference to view, edit,
+    // and delete all data in your Firestore database. It is useful for getting
+    // started, but it is configured to expire after 30 days because it
+    // leaves your app open to attackers. At that time, all client
+    // requests to your Firestore database will be denied.
+    //
+    // Make sure to write security rules for your app before that time, or else
+    // all client requests to your Firestore database will be denied until you Update
+    // your rules
+
+    // match /{document=**} {
+    //   allow read, write: if request.time < timestamp.date(2026, 1, 14);
+    // }
+    
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isUnitru() {
+      return request.auth.token.email.matches('.*@unitru.edu.pe$');
+    }
+    
+    function isAdmin() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+    
+    /* ======================
+       USERS
+       ====================== */
+    match /users/{userId} {
+
+      // Crear usuario (solo su propio UID y correo UNITRU)
+      allow create: if isAuthenticated()
+        && request.auth.uid == userId
+        && request.auth.token.email_verified == true
+        && isUnitru();
+
+      // Leer / actualizar solo su propio perfil
+      allow read, update: if isAuthenticated()
+        && request.auth.uid == userId
+        && request.auth.token.email_verified == true;
+
+
+      // El admin puede actualizar datos
+      allow update: if isAdmin();
+      
+      // Nadie borra usuarios desde el cliente
+      allow delete: if false;
+    }
+    
+
+    /* ======================
+       COURSES
+       ====================== */
+    match /courses/{courseId} {
+      // Cualquier usuario UNITRU autenticado puede leer
+      allow read: if isAuthenticated() && isUnitru();
+      // Cualquier usuario UNITRU autenticado puede crear cursos (para el seed y formularios)
+      allow create: if isAuthenticated() && isUnitru();
+      // Solo admins pueden actualizar o eliminar
+      allow update, delete: if isAdmin();
+    }
+
+
+    /* ======================
+       Teachers
+       ====================== */
+
+    match /teachers/{teacherId} {
+      // Cualquier usuario UNITRU autenticado puede leer
+      allow read: if isAuthenticated() && isUnitru();
+      // Cualquier usuario UNITRU autenticado puede crear profesores (para formularios)
+      allow create: if isAuthenticated() && isUnitru();
+      // Solo admins pueden actualizar o eliminar
+      allow update, delete: if isAdmin();
+    }
+    
+
+    /* ======================
+       EXAMS
+       ====================== */
+    match /exams/{examId} {
+
+      // Leer exámenes: cualquier usuario UNITRU autenticado
+      allow read: if request.auth != null
+        && request.auth.token.email.matches('.*@unitru.edu.pe$');
+
+      // Crear exámenes: usuarios autenticados UNITRU
+      allow create: if request.auth != null
+        && request.auth.token.email.matches('.*@unitru.edu.pe$');
+
+      // Actualizar: el que lo subió O usuarios @unitru (para aprobar/rechazar)
+      allow update: if request.auth != null
+        && (request.auth.uid == resource.data.userId || isUnitru());
+      
+      // Borrar: solo el que lo subió
+      allow delete: if request.auth != null
+        && request.auth.uid == resource.data.userId;
+    }
+    
+    
+    // ===============================
+    // 📌 REPORTS COLLECTION
+    // ===============================
+    match /reports/{reportId} {
+
+      // 👀 Leer reportes
+      // - Solo admins
+      allow read: if isAdmin();
+
+      // ✍️ Crear reporte
+      allow create: if
+        (
+          // Puede ser autenticado o anónimo
+          true
+        )
+        &&
+        // Validación de campos
+        request.resource.data.keys().hasOnly([
+          "reportType",
+          "examId",
+          "subject",
+          "description",
+          "userId",
+          "createdAt",
+          "status"
+        ])
+        &&
+        // Status fijo al crear
+        request.resource.data.status == "pending"
+        &&
+        // createdAt debe venir del servidor
+        request.resource.data.createdAt == request.time
+        &&
+        // Strings no vacíos
+        request.resource.data.reportType is string
+        && request.resource.data.reportType.size() > 0
+        && request.resource.data.examId is string
+        && request.resource.data.examId.size() > 0
+        && request.resource.data.subject is string
+        && request.resource.data.subject.size() > 0
+        && request.resource.data.description is string
+        && request.resource.data.description.size() <= 1000;
+
+      // ✏️ Actualizar reporte
+      // - Solo admins
+      allow update: if isAdmin();
+
+      // ❌ Nadie borra reportes (auditoría)
+      allow delete: if false;
+    }    
+  }
+}

@@ -35,9 +35,9 @@ import {
   Person,
   Brightness4,
   Brightness7,
-  ReportProblem,
-  Favorite,
-  CloudUpload,
+  // ReportProblem,
+  // Favorite,
+  // CloudUpload,
   RateReview,
   HelpOutline,
   Notifications,
@@ -93,17 +93,17 @@ export default function AppLayout() {
 
 
   const commonMenuItems: MenuItem[] = [
-    { text: "Menu", icon: <Dashboard />, path: "/dashboard" },
+    { text: "Panel", icon: <Dashboard />, path: "/dashboard" },
     { text: "Examenes", icon: <Description />, path: "/exams" },
-    { text: "Favoritos", icon: <Favorite />, path: "/favorites" },
-    { text: "Notificaciones", icon: <Notifications />, path: "/notifications", badge: notificationCount },
-    { text: "Ayuda", icon: <HelpOutline />, path: "/help" },
+    // { text: "Favoritos", icon: <Favorite />, path: "/favorites" },
+    // { text: "Notificaciones", icon: <Notifications />, path: "/notifications", badge: notificationCount },
+    // { text: "Ayuda", icon: <HelpOutline />, path: "/help" },
   ]
 
   const userMenuItems: MenuItem[] = [
     { text: "Subir Examen", icon: <Upload />, path: "/upload" },
-    { text: "Mis Examenes", icon: <CloudUpload />, path: "/my-exams" },
-    { text: "Reportar", icon: <ReportProblem />, path: "/report" }
+    // { text: "Mis Examenes", icon: <CloudUpload />, path: "/my-exams" },
+    // { text: "Reportar", icon: <ReportProblem />, path: "/report" }
   ]
 
   const adminMenuItems: MenuItem[] = [
@@ -113,6 +113,7 @@ export default function AppLayout() {
   const menuItems: MenuItem[] = [
     ...commonMenuItems,
     ...(role === "alumno" || role === "admin" ? userMenuItems : []),
+    { text: "Ayuda", icon: <HelpOutline />, path: "/help" },
     ...(role === "admin" ? adminMenuItems : []),
   ]
 

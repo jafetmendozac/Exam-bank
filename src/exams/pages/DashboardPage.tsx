@@ -1,6 +1,5 @@
 import {
   Box,
-  Container,
   Typography,
   Grid,
   Card,
@@ -10,20 +9,66 @@ import {
 import DescriptionIcon from "@mui/icons-material/Description";
 import DownloadIcon from "@mui/icons-material/Download";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import { useAuth } from "@/auth/context/useAuth";
+// import { useAuth } from "@/auth/context/useAuth";
 import { Button } from "@mui/material";
 import Header from "../components/Header";
+import { PageContainer } from "../components/PageContainer";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/auth/context/useAuth";
+import {
+  getTotalExamsCount,
+  getThisMonthExamsCount,
+  getUserUploadsCount,
+  getUserDownloadsCount,
+  getActiveUsersCount,
+  getRecentExams,
+} from "../services/dashboard.service";
 
 
 const DashboardPage = () => {
-  // Estos luego vendrán de Firestore
-  const availableExams = 24;
-  const selectedExams = [];
-  const recentExams = 6;
-  const { role } = useAuth();
+  const { user } = useAuth();
+
+  const [availableExams, setAvailableExams] = useState<number | null>(null);
+  const [thisMonthExams, setThisMonthExams] = useState<number | null>(null);
+  const [yourUploads, setYourUploads] = useState<number | null>(null);
+  const [yourDownloads, setYourDownloads] = useState<number | null>(null);
+  const [activeUsers, setActiveUsers] = useState<number | null>(null);
+  const [recentExamsList, setRecentExamsList] = useState<any[]>([]);
+
+  useEffect(() => {
+    const loadMetrics = async () => {
+      try {
+        const [total, month, usersCount, recent] = await Promise.all([
+          getTotalExamsCount(),
+          getThisMonthExamsCount(),
+          getActiveUsersCount(),
+          getRecentExams(5),
+        ]);
+
+        setAvailableExams(total);
+        setThisMonthExams(month);
+        setActiveUsers(usersCount);
+        setRecentExamsList(recent);
+
+        if (user?.uid) {
+          const [uploads, downloads] = await Promise.all([
+            getUserUploadsCount(user.uid),
+            getUserDownloadsCount(user.uid),
+          ]);
+          setYourUploads(uploads);
+          setYourDownloads(downloads);
+        }
+      } catch (err) {
+        console.error("Error loading dashboard metrics", err);
+      }
+    };
+
+    loadMetrics();
+  }, [user]);
+  // const { role } = useAuth();
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <PageContainer>
 
       <Header 
         title="Mi Dashboard" 
@@ -52,10 +97,10 @@ const DashboardPage = () => {
                     color="text.secondary"
                     fontWeight={500}
                   >
-                    Disponibles
+                    Exámenes totales
                   </Typography>
                   <Typography variant="h5" fontWeight="bold">
-                    {availableExams}
+                    {availableExams ?? "..."}
                   </Typography>
                 </Box>
               </Stack>
@@ -84,10 +129,10 @@ const DashboardPage = () => {
                     color="text.secondary"
                     fontWeight={500}
                   >
-                    Seleccionados
+                    Tus descargas
                   </Typography>
                   <Typography variant="h5" fontWeight="bold">
-                    {selectedExams.length}
+                    {yourDownloads ?? "..."}
                   </Typography>
                 </Box>
               </Stack>
@@ -117,10 +162,10 @@ const DashboardPage = () => {
                     color="text.secondary"
                     fontWeight={500}
                   >
-                    Últimos 7 días
+                    Este mes
                   </Typography>
                   <Typography variant="h5" fontWeight="bold">
-                    {recentExams}
+                    {thisMonthExams ?? "..."}
                   </Typography>
                 </Box>
               </Stack>
@@ -128,11 +173,47 @@ const DashboardPage = () => {
           </Card>
         </Grid>
       </Grid>
-          {role === "admin" && (
-      <Button variant="contained">Subir examen</Button>
+
+      <Grid container spacing={3} mt={2}>
+        <Grid size={{ xs: 12, md: 8 }}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" fontWeight={600} mb={2}>
+                Exámenes añadidos recientemente
+              </Typography>
+              {recentExamsList.map((ex) => (
+                <Box key={ex.id} sx={{ pb: 2, borderBottom: "1px solid", borderColor: "divider", mb: 2 }}>
+                  <Typography fontWeight={600}>{ex.title}</Typography>
+                  <Stack direction="row" spacing={1} mt={1}>
+                    <Typography variant="caption" color="text.secondary">{ex.course}</Typography>
+                    <Typography variant="caption" color="text.secondary">{ex.teacher}</Typography>
+                    <Typography variant="caption" color="text.secondary">{new Date(ex.uploadDate).toLocaleDateString()}</Typography>
+                  </Stack>
+                </Box>
+              ))}
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 4 }}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" fontWeight={600} mb={2}>
+                Acciones rápidas
+              </Typography>
+              <Stack spacing={2}>
+                <Button variant="contained">Subir examen</Button>
+                <Button variant="outlined">Explorar exámenes</Button>
+              </Stack>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+          {/* {role === "admin" && (
+      <Button variant="contained">Subir Profesores</Button>
     )}
-    {role}
-    </Container>
+    {role} */}
+    </PageContainer>
   );
 };
 

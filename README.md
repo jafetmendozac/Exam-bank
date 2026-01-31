@@ -14,97 +14,116 @@ The React Compiler is not enabled on this template because of its impact on dev 
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+# Exam Bank
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Aplicación web para gestionar y compartir exámenes (banco de exámenes), desarrollada con React + Vite y Firebase.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Descripción
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Exam Bank permite a usuarios subir, listar y gestionar exámenes. Incluye autenticación, roles (administrador/usuario), páginas para administración y funcionalidades serverless en `functions/`.
+
+## Tecnologías principales
+
+- TypeScript
+- React (Vite)
+- Firebase (Auth, Firestore, Storage, Functions)
+- Node.js (para `functions/`)
+
+## Requisitos
+
+- Node.js (recomendado ≥ 16)
+- npm o pnpm/yarn
+- Cuenta y proyecto de Firebase
+
+## Instalación
+
+1. Clona el repositorio:
+
+```bash
+git clone <tu-repo-url>
+cd Exam-bank
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2. Instala dependencias:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+# o
+# pnpm install
+# yarn install
 ```
 
+3. Configura Firebase: añade credenciales / variables de entorno necesarias y revisa `src/app/firebase.ts`.
 
+## Desarrollo (frontend)
 
+Inicia la app en modo desarrollo con Vite:
 
-src/
-├── app/               # Configuración global
-│   ├── firebase.ts
-│   ├── router.tsx
-│   └── providers.tsx
-│
-├── auth/              # Feature: autenticación
-│   ├── AuthContext.tsx
-│   ├── useAuth.ts
-│   └── LoginPage.tsx
-│
-├── exams/             # Feature: exámenes
-│   ├── services/
-│   │   └── exams.service.ts
-│   ├── components/
-│   │   ├── ExamCard.tsx
-│   │   └── UploadExamModal.tsx
-│   ├── pages/
-│   │   ├── ExamsPage.tsx
-│   │   └── ExamDetailPage.tsx
-│   └── types.ts
-│
-├── courses/           # Feature: cursos
-│   ├── services/
-│   └── pages/
-│
-├── shared/            # Reutilizable
-│   ├── components/
-│   ├── hooks/
-│   └── utils/
-│
-├── assets/
-└── main.tsx
+```bash
+npm run dev
+```
+
+Abre la URL que muestre Vite (por defecto `http://localhost:5173`).
+
+## Cloud Functions (backend)
+
+Las funciones están en `functions/`. Pasos básicos:
+
+```bash
+cd functions
+npm install
+# Si hay compilación TS:
+npm run build
+# Emular funciones localmente:
+firebase emulators:start --only functions
+```
+
+Recuerda instalar y configurar el Firebase CLI (`firebase login`) y seleccionar tu proyecto (`firebase use --add`).
+
+## Scripts útiles
+
+- `npm run dev` — Inicia el servidor de desarrollo (Vite)
+- `npm run build` — Genera la versión de producción
+- `npm run preview` — Sirve la build localmente
+- En `functions/`: scripts para compilar y desplegar funciones (revisa `functions/package.json`).
+
+## Estructura del proyecto (resumen)
+
+- `src/` — Código frontend (React + TSX)
+  - `src/app/firebase.ts` — Inicialización de Firebase
+  - `src/app/router.tsx` — Rutas de la aplicación
+  - `auth/` — Páginas y lógica de autenticación
+  - `exams/` — Componentes, servicios y páginas relacionadas con exámenes
+  - `shared/` — Componentes y utilidades reutilizables
+- `functions/` — Cloud Functions en TypeScript
+- `public/` — Archivos estáticos
+
+## Despliegue
+
+1. Genera la build del frontend:
+
+```bash
+npm run build
+```
+
+2. Despliega con Firebase (hosting y functions):
+
+```bash
+firebase deploy
+```
+
+Consulta la guía de Firebase para opciones avanzadas y entornos.
+
+## Contribuir
+
+1. Abre un issue describiendo la mejora o bug.
+2. Crea una rama `feature/descripcion`.
+3. Envía un pull request con una descripción clara.
+
+## Contacto / Ajustes
+
+Si quieres que adapte este README (añadir badges, screenshots, comandos exactos para `functions`, CI o instrucciones de despliegue más detalladas), dime qué prefieres y lo actualizo.
+
+---
+
+_(Generado y personalizado para este repositorio.)_

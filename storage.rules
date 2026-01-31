@@ -1,12 +1,24 @@
 rules_version = '2';
-
-// Craft rules based on data in your Firestore database
-// allow write: if firestore.get(
-//    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
 service firebase.storage {
   match /b/{bucket}/o {
-    match /{allPaths=**} {
-      allow read, write: if false;
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isUnitru() {
+      return request.auth.token.email != null
+        && request.auth.token.email.matches('.*@unitru.edu.pe$');
+    }
+
+    // NUEVA estructura
+    match /exams/{curso}/{semestre}/{unidad}/{fileName} {
+      allow read, write: if isAuthenticated() && isUnitru();
+    }
+
+    // ESTRUCTURA ANTIGUA CON UID
+    match /exams/{anio}/{curso}/{unidad}/{seccion}/{fileName} {
+      allow read, write: if isAuthenticated() && isUnitru();
     }
   }
 }
