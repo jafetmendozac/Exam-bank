@@ -180,7 +180,7 @@ export default function ExamsPage() {
       <Card sx={{ mb: 3 }}>
         <CardContent>
           <Grid container spacing={2} alignItems="center">
-            <Grid size={{ xs: 12, sm: 6, md: 3}}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }} >
               <TextField
                 select
                 fullWidth
@@ -198,7 +198,7 @@ export default function ExamsPage() {
             </Grid>
 
 
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }} >
               <Autocomplete
                 fullWidth
                 options={availableCourses}
@@ -221,8 +221,7 @@ export default function ExamsPage() {
             </Grid>
 
             {/* Botones de Búsqueda y Limpiar */}
-            <Grid size={{ xs: 12, sm: 12, md: 4 }}>
-              <Stack direction="row" spacing={1.5}>
+            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
                 <Button
                   variant="contained"
                   startIcon={<SearchIcon />}
@@ -238,6 +237,8 @@ export default function ExamsPage() {
                 >
                   {isLoading ? "Buscando..." : "Buscar"}
                 </Button>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
                 <Button
                   variant="outlined"
                   startIcon={<ClearIcon />}
@@ -253,10 +254,9 @@ export default function ExamsPage() {
                 >
                   Limpiar
                 </Button>
-              </Stack>
             </Grid>
 
-            <Grid size={{ xs: 12, sm: 12, md: 2 }}>
+            <Grid size={{ xs: 12, md: 2 }} >
               <Box display="flex" justifyContent={{ xs: "center", md: "flex-end" }}>
                 <ToggleButtonGroup
                   exclusive
@@ -410,17 +410,18 @@ function GridView({
 }) {
   const navigate = useNavigate();
   return (
-    <Grid container spacing={3}>
+    <>
+      <Grid container spacing={3}>
       {filteredExams.map((exam) => {
         return (
-          <Grid size={{ xs: 12, md: 6, lg: 4 }} key={exam.id}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={exam.id} sx={{ display: "flex" }}>
             <Card
               sx={{
                 position: "relative",
-                border: selectedExams.includes(exam.id)
-                  ? "2px solid"
-                  : undefined,
+                border: selectedExams.includes(exam.id) ? "2px solid" : undefined,
                 borderColor: "primary.main",
+                display: "flex",
+                flexDirection: "column",
               }}
             >
               <Checkbox
@@ -429,7 +430,7 @@ function GridView({
                 sx={{ position: "absolute", top: 8, left: 8 }}
               />
 
-              <CardContent>
+              <CardContent sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
                 <Stack spacing={1}>
                   <Chip label={exam.course} size="small" />
                   <Typography variant="h6">{exam.title}</Typography>
@@ -444,29 +445,29 @@ function GridView({
                       ? new Date(exam.uploadDate).toLocaleDateString()
                       : ""}
                   </Typography>
-
-                  <Box display="flex" alignItems="center" mt={1}>
-                    <Stack direction="row" spacing={1}>
-                      <Button size="small" variant="contained">
-                        Descargar
-                      </Button>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        color="error"
-                        onClick={() => navigate(`/report/${exam.id}`)}
-                      >
-                        Reportar
-                      </Button>
-                    </Stack>
-
-                  </Box>
                 </Stack>
+
+                <Box display="flex" alignItems="center" mt="auto">
+                  <Stack direction="row" spacing={1}>
+                    <Button size="small" variant="contained">
+                      Descargar
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="error"
+                      onClick={() => navigate(`/report/${exam.id}`)}
+                    >
+                      Reportar
+                    </Button>
+                  </Stack>
+                </Box>
               </CardContent>
             </Card>
           </Grid>
         );
       })}
     </Grid>
+    </>
   );
 }

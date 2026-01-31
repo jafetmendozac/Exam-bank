@@ -105,6 +105,55 @@ service cloud.firestore {
     }
     
     
-    
+    // ===============================
+    // 📌 REPORTS COLLECTION
+    // ===============================
+    match /reports/{reportId} {
+
+      // 👀 Leer reportes
+      // - Solo admins
+      allow read: if isAdmin();
+
+      // ✍️ Crear reporte
+      allow create: if
+        (
+          // Puede ser autenticado o anónimo
+          true
+        )
+        &&
+        // Validación de campos
+        request.resource.data.keys().hasOnly([
+          "reportType",
+          "examId",
+          "subject",
+          "description",
+          "userId",
+          "createdAt",
+          "status"
+        ])
+        &&
+        // Status fijo al crear
+        request.resource.data.status == "pending"
+        &&
+        // createdAt debe venir del servidor
+        request.resource.data.createdAt == request.time
+        &&
+        // Strings no vacíos
+        request.resource.data.reportType is string
+        && request.resource.data.reportType.size() > 0
+        && request.resource.data.examId is string
+        && request.resource.data.examId.size() > 0
+        && request.resource.data.subject is string
+        && request.resource.data.subject.size() > 0
+        && request.resource.data.description is string
+        && request.resource.data.description.size() <= 1000;
+
+      // ✏️ Actualizar reporte
+      // - Solo admins
+      allow update: if isAdmin();
+
+      // ❌ Nadie borra reportes (auditoría)
+      allow delete: if false;
+    }    
   }
 }

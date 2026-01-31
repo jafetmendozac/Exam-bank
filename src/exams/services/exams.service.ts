@@ -168,8 +168,7 @@ export const getAllExams = async (filters?: {
 
   return querySnapshot.docs.map((doc) => {
     const data = doc.data();
-    console.log(data);
-    
+
     const filePath = data.filePath || (data.fileUrl ? extractPathFromURL(data.fileUrl) : "");
 
     return {
