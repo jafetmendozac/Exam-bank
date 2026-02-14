@@ -28,6 +28,7 @@ import ClearIcon from "@mui/icons-material/Clear";
 import Header from "../components/Header";
 import { getAllExams, type Exam as ServiceExam } from "../services/exams.service";
 import { getCourses } from "../services/courses.service";
+import RatingBadge from "@/exams/components/RatingBadge";
 
 // Ciclos romanos del I al X
 const CYCLES = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
@@ -41,21 +42,21 @@ export default function ExamsPage() {
 
   const [allCourses, setAllCourses] = useState<string[]>([]);
   const [availableCourses, setAvailableCourses] = useState<string[]>([]);
-  
+
   const [cycleFilter, setCycleFilter] = useState("");
   const [courseFilter, setCourseFilter] = useState<string | null>(null);
-  
+
   const [searchError, setSearchError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   // Cargar cursos y exámenes iniciales
   useEffect(() => {
     let mounted = true;
-    
+
     const loadInitialData = async () => {
       try {
         setIsLoading(true);
-        
+
         // Cargar todos los cursos
         const coursesData = await getCourses();
         if (mounted) {
@@ -213,8 +214,8 @@ export default function ExamsPage() {
                   />
                 )}
                 noOptionsText={
-                  cycleFilter 
-                    ? "No hay cursos en este ciclo" 
+                  cycleFilter
+                    ? "No hay cursos en este ciclo"
                     : "No se encontraron cursos"
                 }
               />
@@ -222,38 +223,38 @@ export default function ExamsPage() {
 
             {/* Botones de Búsqueda y Limpiar */}
             <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                <Button
-                  variant="contained"
-                  startIcon={<SearchIcon />}
-                  onClick={handleSearch}
-                  disabled={isLoading}
-                  fullWidth
-                  size="large"
-                  sx={{
-                    py: 1.5,
-                    fontWeight: 600,
-                    textTransform: "none",
-                  }}
-                >
-                  {isLoading ? "Buscando..." : "Buscar"}
-                </Button>
+              <Button
+                variant="contained"
+                startIcon={<SearchIcon />}
+                onClick={handleSearch}
+                disabled={isLoading}
+                fullWidth
+                size="large"
+                sx={{
+                  py: 1.5,
+                  fontWeight: 600,
+                  textTransform: "none",
+                }}
+              >
+                {isLoading ? "Buscando..." : "Buscar"}
+              </Button>
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                <Button
-                  variant="outlined"
-                  startIcon={<ClearIcon />}
-                  onClick={handleClearFilters}
-                  disabled={isLoading}
-                  fullWidth
-                  size="large"
-                  sx={{
-                    py: 1.5,
-                    fontWeight: 600,
-                    textTransform: "none",
-                  }}
-                >
-                  Limpiar
-                </Button>
+              <Button
+                variant="outlined"
+                startIcon={<ClearIcon />}
+                onClick={handleClearFilters}
+                disabled={isLoading}
+                fullWidth
+                size="large"
+                sx={{
+                  py: 1.5,
+                  fontWeight: 600,
+                  textTransform: "none",
+                }}
+              >
+                Limpiar
+              </Button>
             </Grid>
 
             <Grid size={{ xs: 12, md: 2 }} >
@@ -412,62 +413,71 @@ function GridView({
   return (
     <>
       <Grid container spacing={3}>
-      {filteredExams.map((exam) => {
-        return (
-          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={exam.id} sx={{ display: "flex" }}>
-            <Card
-              sx={{
-                position: "relative",
-                border: selectedExams.includes(exam.id) ? "2px solid" : undefined,
-                borderColor: "primary.main",
-                display: "flex",
-                flexDirection: "column",
-              }}
-            >
-              <Checkbox
-                checked={selectedExams.includes(exam.id)}
-                onChange={() => toggleExam(exam.id)}
-                sx={{ position: "absolute", top: 8, left: 8 }}
-              />
+        {filteredExams.map((exam) => {
+          return (
+            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={exam.id} sx={{ display: "flex" }}>
+              <Card
+                sx={{
+                  position: "relative",
+                  border: selectedExams.includes(exam.id) ? "2px solid" : undefined,
+                  borderColor: "primary.main",
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                <Checkbox
+                  checked={selectedExams.includes(exam.id)}
+                  onChange={() => toggleExam(exam.id)}
+                  sx={{ position: "absolute", top: 8, left: 8 }}
+                />
 
-              <CardContent sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
-                <Stack spacing={1}>
-                  <Chip label={exam.course} size="small" />
-                  <Typography variant="h6">{exam.title}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {exam.schoolTerm} - {exam.unit} {exam.section ? `- ${exam.section}` : ""}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    Profesor: {exam.teacher}
-                  </Typography>
-                  <Typography variant="caption">
-                    {exam.uploadDate
-                      ? new Date(exam.uploadDate).toLocaleDateString()
-                      : ""}
-                  </Typography>
-                </Stack>
-
-                <Box display="flex" alignItems="center" mt="auto">
-                  <Stack direction="row" spacing={1}>
-                    <Button size="small" variant="contained">
-                      Descargar
-                    </Button>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      color="error"
-                      onClick={() => navigate(`/report/${exam.id}`)}
-                    >
-                      Reportar
-                    </Button>
+                <CardContent sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
+                  <Stack spacing={1}>
+                    <Chip label={exam.course} size="small" />
+                    <Typography variant="h6">{exam.title}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {exam.schoolTerm} - {exam.unit} {exam.section ? `- ${exam.section}` : ""}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Profesor: {exam.teacher}
+                    </Typography>
+                    <Typography variant="caption">
+                      {exam.uploadDate
+                        ? new Date(exam.uploadDate).toLocaleDateString()
+                        : ""}
+                    </Typography>
                   </Stack>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-        );
-      })}
-    </Grid>
+
+                  <Box display="flex" alignItems="center" mt="auto">
+                    <Stack direction="row" spacing={1}>
+                      <Button size="small" variant="contained">
+                        Descargar
+                      </Button>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="error"
+                        onClick={() => navigate(`/report/${exam.id}`)}
+                      >
+                        Reportar
+                      </Button>
+                    </Stack>
+                  </Box>
+                  <Box sx={{ my: 1 }}>
+                    <RatingBadge summary={exam.ratingsSummary} />
+                  </Box>
+                  <Button
+                    onClick={() => navigate(`/exam/${exam.id}`)}
+                  >
+                    Ver Detalles
+                  </Button>
+                </CardContent>
+              </Card>
+            </Grid>
+
+          );
+        })}
+      </Grid>
     </>
   );
 }

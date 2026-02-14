@@ -24,6 +24,7 @@ import AdminPage from "@/exams/pages/admin/AdminDashboard";
 import ManageExamsPage from "@/exams/pages/admin/ManageExamsPage";
 import UsersPage from "@/exams/pages/admin/UsersPage";
 import StatsPage from "@/exams/pages/admin/StatsPage";
+import ExamDetailPage from "@/exams/pages/ExamDetailPage";
 
 
 export const router = createBrowserRouter([
@@ -53,6 +54,7 @@ export const router = createBrowserRouter([
           { path: "/profile", element: <ProfilePage /> },
           { path: "/report/:examId", element: <ReportPage /> },
           { path: "/my-exams", element: <MyExamsPage /> },
+          { path: "/exam/:examId", element: <ExamDetailPage /> },
 
           {
             element: <AdminRoute />,

@@ -12,6 +12,7 @@ import {
   QueryConstraint,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import type { RatingSummary } from "./ratings.service";
 import type { User } from "firebase/auth";
 
 export interface ExamData {
@@ -40,6 +41,7 @@ export interface Exam {
   fileUrl: string;
   fileName: string;
   filePath: string; // Path en Storage (ej: "exams/userId/filename.pdf")
+  ratingsSummary?: RatingSummary;
 }
 
 
@@ -90,6 +92,7 @@ export const uploadExam = async (user: User, examData: ExamData): Promise<string
     fileName: examData.file.name,
     fileSize: examData.file.size,
     filePath, // Guardar el path para poder eliminar el archivo después
+
   });
 
   return examDoc.id;
@@ -141,6 +144,11 @@ export const getUserExams = async (userId: string): Promise<Exam[]> => {
       fileName: data.fileName,
       fileSize: data.file.size,
       filePath,
+      ratingsSummary: data.ratingsSummary || {
+        average: 0,
+        count: 0,
+        distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
+      },
     } as Exam;
   });
 };
@@ -188,6 +196,11 @@ export const getAllExams = async (filters?: {
       fileName: data.fileName,
       fileSize: data.fileSize,
       filePath,
+      ratingsSummary: data.ratingsSummary || {
+        average: 0,
+        count: 0,
+        distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
+      },
     } as Exam;
   });
 };
