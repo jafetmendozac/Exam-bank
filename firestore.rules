@@ -2,21 +2,6 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // This rule allows anyone with your Firestore database reference to view, edit,
-    // and delete all data in your Firestore database. It is useful for getting
-    // started, but it is configured to expire after 30 days because it
-    // leaves your app open to attackers. At that time, all client
-    // requests to your Firestore database will be denied.
-    //
-    // Make sure to write security rules for your app before that time, or else
-    // all client requests to your Firestore database will be denied until you Update
-    // your rules
-
-    // match /{document=**} {
-    //   allow read, write: if request.time < timestamp.date(2026, 1, 14);
-    // }
-    
     
     function isAuthenticated() {
       return request.auth != null;
@@ -27,27 +12,35 @@ service cloud.firestore {
     }
     
     function isAdmin() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+      return request.auth != null &&
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
     }
     
     /* ======================
        USERS
        ====================== */
     match /users/{userId} {
-
       // Crear usuario (solo su propio UID y correo UNITRU)
       allow create: if isAuthenticated()
         && request.auth.uid == userId
         && request.auth.token.email_verified == true
         && isUnitru();
 
-      // Leer / actualizar solo su propio perfil
-      allow read, update: if isAuthenticated()
+      // Leer su propio perfil
+      allow read: if isAuthenticated()
         && request.auth.uid == userId
         && request.auth.token.email_verified == true;
 
+      // ✅ ADMIN: Puede leer TODOS los usuarios (para dashboard y UsersPage)
+      allow read: if isAdmin();
 
-      // El admin puede actualizar datos
+      // Actualizar solo su propio perfil
+      allow update: if isAuthenticated()
+        && request.auth.uid == userId
+        && request.auth.token.email_verified == true;
+
+      // El admin puede actualizar datos de cualquier usuario
       allow update: if isAdmin();
       
       // Nadie borra usuarios desde el cliente
@@ -59,25 +52,18 @@ service cloud.firestore {
        COURSES
        ====================== */
     match /courses/{courseId} {
-      // Cualquier usuario UNITRU autenticado puede leer
       allow read: if isAuthenticated() && isUnitru();
-      // Cualquier usuario UNITRU autenticado puede crear cursos (para el seed y formularios)
       allow create: if isAuthenticated() && isUnitru();
-      // Solo admins pueden actualizar o eliminar
       allow update, delete: if isAdmin();
     }
 
 
     /* ======================
-       Teachers
+       TEACHERS
        ====================== */
-
     match /teachers/{teacherId} {
-      // Cualquier usuario UNITRU autenticado puede leer
       allow read: if isAuthenticated() && isUnitru();
-      // Cualquier usuario UNITRU autenticado puede crear profesores (para formularios)
       allow create: if isAuthenticated() && isUnitru();
-      // Solo admins pueden actualizar o eliminar
       allow update, delete: if isAdmin();
     }
     
@@ -86,89 +72,81 @@ service cloud.firestore {
        EXAMS
        ====================== */
     match /exams/{examId} {
-
       // Leer exámenes: cualquier usuario UNITRU autenticado
-      allow read: if request.auth != null
-        && request.auth.token.email.matches('.*@unitru.edu.pe$');
-
-      // Crear exámenes: usuarios autenticados UNITRU
-      allow create: if request.auth != null
-        && request.auth.token.email.matches('.*@unitru.edu.pe$');
-
-      // Actualizar: el que lo subió O usuarios @unitru (para aprobar/rechazar)
-      allow update: if request.auth != null
-        && (request.auth.uid == resource.data.userId || isUnitru());
+      allow read: if isAuthenticated() && isUnitru();
       
-      // Borrar: solo el que lo subió
-      allow delete: if request.auth != null
-        && request.auth.uid == resource.data.userId;
-    }
-    
-    
-    // ===============================
-    // 📌 REPORTS COLLECTION
-    // ===============================
-    match /reports/{reportId} {
-
-      // 👀 Leer reportes
-      // - Solo admins
+      // ✅ ADMIN: Puede leer TODOS (para dashboard stats)
       allow read: if isAdmin();
 
-      // ✍️ Crear reporte
-      allow create: if
-        (
-          // Puede ser autenticado o anónimo
-          true
-        )
-        &&
-        // Validación de campos
-        request.resource.data.keys().hasOnly([
-          "reportType",
-          "examId",
-          "subject",
-          "description",
-          "userId",
-          "createdAt",
-          "status"
-        ])
-        &&
-        // Status fijo al crear
-        request.resource.data.status == "pending"
-        &&
-        // createdAt debe venir del servidor
-        request.resource.data.createdAt == request.time
-        &&
-        // Strings no vacíos
-        request.resource.data.reportType is string
-        && request.resource.data.reportType.size() > 0
-        && request.resource.data.examId is string
-        && request.resource.data.examId.size() > 0
-        && request.resource.data.subject is string
-        && request.resource.data.subject.size() > 0
-        && request.resource.data.description is string
-        && request.resource.data.description.size() <= 1000;
+      // Crear exámenes: usuarios autenticados UNITRU
+      allow create: if isAuthenticated() && isUnitru();
 
-      // ✏️ Actualizar reporte
-      // - Solo admins
-      allow update: if isAdmin();
+      // Actualizar: el que lo subió O usuarios @unitru (para aprobar/actualizar ratings)
+      allow update: if isAuthenticated() && (
+        request.auth.uid == resource.data.userId || 
+        request.auth.uid == resource.data.uploadedBy ||
+        isUnitru()
+      );
 
-      // ❌ Nadie borra reportes (auditoría)
-      allow delete: if false;
+      // Borrar: solo el que lo subió o admin
+      allow delete: if isAuthenticated() && (
+        request.auth.uid == resource.data.userId ||
+        request.auth.uid == resource.data.uploadedBy ||
+        isAdmin()
+      );
     }
+    
+    
+    /* ======================
+       RATINGS
+       ====================== */
     match /ratings/{ratingId} {
-      allow read: if request.auth != null;
+      // Lectura: Todos los usuarios autenticados
+      allow read: if isAuthenticated();
       
-      allow create: if request.auth != null 
-        && request.auth.token.email.matches('.*@unitru.edu.pe$')
+      // Creación: Usuario autenticado @unitru
+      allow create: if isAuthenticated() 
+        && isUnitru()
         && request.auth.uid == request.resource.data.userId;
       
-      allow update: if request.auth != null 
-        && request.auth.uid == resource.data.userId;
+      // Actualización: Solo el dueño
+      allow update: if isAuthenticated() 
+        && request.auth.uid == resource.data.userId
+        && request.resource.data.examId == resource.data.examId
+        && request.resource.data.userId == resource.data.userId;
       
-      allow delete: if request.auth != null && (
+      // Eliminación: El dueño o admin
+      allow delete: if isAuthenticated() && (
         request.auth.uid == resource.data.userId ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin"
+        isAdmin()
       );
-    }    
+    }
+    
+    
+    /* ======================
+       REPORTS
+       ====================== */
+    match /reports/{reportId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isUnitru();
+      allow update, delete: if isAdmin();
+    }
+    
+    
+    /* ======================
+       ✅ DOWNLOAD LOGS (Para dashboard stats)
+       ====================== */
+    match /downloadLogs/{logId} {
+      // Crear log cuando alguien descarga
+      allow create: if isAuthenticated();
+      
+      // Admin puede leer todos (para stats)
+      allow read: if isAdmin();
+      
+      // Usuario puede leer solo los suyos
+      allow read: if isAuthenticated() && 
+                    request.auth.uid == resource.data.userId;
+    }
+    
   }
 }
