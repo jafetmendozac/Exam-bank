@@ -49,7 +49,7 @@ import { db } from "@/app/firebase";
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [role, setRole] = useState<"admin" | "alumno" | null>(null);
+  const [role, setRole] = useState<"admin" | "user" | null>(null); // ✅ Cambié "alumno" → "user"
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -69,8 +69,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         firebaseUser.emailVerified &&
         firebaseUser.email?.endsWith("@unitru.edu.pe")
       ) {
-        // 1️⃣ Crear usuario si no existe
-        await createUserIfNotExists(firebaseUser);
+        // // ✅ CORREGIDO: Pasar parámetros separados
+        // await createUserIfNotExists(
+        //   firebaseUser.uid,
+        //   firebaseUser.email,
+        //   firebaseUser.displayName || undefined,
+        //   firebaseUser.photoURL || undefined
+        // );
+
+        // ✅ OPTIMIZADO: Solo actualizar lastLogin 1 vez al día
+        const lastLoginKey = `lastLogin_${firebaseUser.uid}`;
+        const lastUpdate = localStorage.getItem(lastLoginKey);
+        const now = Date.now();
+        const oneDayInMs = 24 * 60 * 60 * 1000; // 24 horas
+
+        // Solo actualizar si pasaron más de 24 horas
+        if (!lastUpdate || now - parseInt(lastUpdate) > oneDayInMs) {
+          await createUserIfNotExists(
+            firebaseUser.uid,
+            firebaseUser.email,
+            firebaseUser.displayName || undefined,
+            firebaseUser.photoURL || undefined
+          );
+          localStorage.setItem(lastLoginKey, now.toString());
+        }
 
         // 2️⃣ Leer rol desde Firestore
         const snap = await getDoc(doc(db, "users", firebaseUser.uid));

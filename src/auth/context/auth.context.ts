@@ -3,7 +3,7 @@ import type { User } from "firebase/auth";
 
 export interface AuthContextType {
   user: User | null;
-  role: "admin" | "alumno" | null;
+  role: "admin" | "user" | null;
   loading: boolean;
 }
 

@@ -20,6 +20,7 @@ import {
   Alert,
   Autocomplete,
   TextField,
+  Pagination,
 } from "@mui/material";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -32,6 +33,9 @@ import RatingBadge from "@/exams/components/RatingBadge";
 
 // Ciclos romanos del I al X
 const CYCLES = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
+
+// ✅ OPTIMIZACIÓN: Constante de paginación
+const EXAMS_PER_PAGE = 20;
 
 export default function ExamsPage() {
   const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
@@ -49,6 +53,11 @@ export default function ExamsPage() {
   const [searchError, setSearchError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  // ✅ NUEVO: Estado de paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [paginatedExams, setPaginatedExams] = useState<ServiceExam[]>([]);
+
   // Cargar cursos y exámenes iniciales
   useEffect(() => {
     let mounted = true;
@@ -64,8 +73,8 @@ export default function ExamsPage() {
           setAvailableCourses(coursesData);
         }
 
-        // Cargar todos los exámenes
-        const examsData = await getAllExams();
+        // ✅ OPTIMIZACIÓN: Cargar solo exámenes aprobados (reduce reads)
+        const examsData = await getAllExams({ status: "approved" });
         if (mounted) {
           setAllExams(examsData);
           setFilteredExams(examsData);
@@ -86,21 +95,34 @@ export default function ExamsPage() {
     };
   }, []);
 
+  // ✅ NUEVO: Aplicar paginación cuando cambian los exámenes filtrados
+  useEffect(() => {
+    const total = Math.ceil(filteredExams.length / EXAMS_PER_PAGE);
+    setTotalPages(total);
+
+    // Resetear a página 1 cuando cambian los filtros
+    setCurrentPage(1);
+  }, [filteredExams]);
+
+  // ✅ NUEVO: Actualizar exámenes paginados cuando cambia la página
+  useEffect(() => {
+    const startIndex = (currentPage - 1) * EXAMS_PER_PAGE;
+    const endIndex = startIndex + EXAMS_PER_PAGE;
+    setPaginatedExams(filteredExams.slice(startIndex, endIndex));
+  }, [currentPage, filteredExams]);
+
   // Filtrar cursos disponibles según el ciclo seleccionado
   useEffect(() => {
     const filterCoursesByCycle = async () => {
       if (!cycleFilter) {
-        // Si no hay ciclo seleccionado, mostrar todos los cursos
         setAvailableCourses(allCourses);
         return;
       }
 
       try {
-        // Obtener cursos filtrados por ciclo desde Firebase
         const coursesInCycle = await getCourses(cycleFilter);
         setAvailableCourses(coursesInCycle);
 
-        // Si el curso seleccionado no está en el ciclo, limpiarlo
         if (courseFilter && !coursesInCycle.includes(courseFilter)) {
           setCourseFilter(null);
         }
@@ -115,7 +137,6 @@ export default function ExamsPage() {
 
   // Función para aplicar filtros
   const handleSearch = async () => {
-    // Validar que al menos un filtro esté seleccionado
     if (!cycleFilter && !courseFilter) {
       setSearchError("Por favor selecciona al menos un filtro para buscar");
       return;
@@ -128,15 +149,15 @@ export default function ExamsPage() {
       const filters: {
         cycle?: string;
         course?: string;
-      } = {};
+        status?: "approved";
+      } = {
+        status: "approved", // ✅ Siempre filtrar por aprobados
+      };
 
       if (cycleFilter) filters.cycle = cycleFilter;
       if (courseFilter) filters.course = courseFilter;
 
-      // Obtener exámenes filtrados del servidor
-      const examsData = await getAllExams(
-        Object.keys(filters).length ? filters : undefined
-      );
+      const examsData = await getAllExams(filters);
 
       setFilteredExams(examsData);
 
@@ -158,6 +179,7 @@ export default function ExamsPage() {
     setSearchError("");
     setFilteredExams(allExams);
     setSelectedExams([]);
+    setCurrentPage(1); // ✅ Resetear página
   };
 
   const toggleExam = (id: string) => {
@@ -167,11 +189,18 @@ export default function ExamsPage() {
   };
 
   const toggleAll = () => {
-    if (selectedExams.length === filteredExams.length) {
+    // ✅ Cambiar: Seleccionar solo los de la página actual
+    if (selectedExams.length === paginatedExams.length) {
       setSelectedExams([]);
     } else {
-      setSelectedExams(filteredExams.map((e) => e.id));
+      setSelectedExams(paginatedExams.map((e) => e.id));
     }
+  };
+
+  // ✅ NUEVO: Manejar cambio de página
+  const handlePageChange = (_: React.ChangeEvent<unknown>, page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
@@ -181,7 +210,7 @@ export default function ExamsPage() {
       <Card sx={{ mb: 3 }}>
         <CardContent>
           <Grid container spacing={2} alignItems="center">
-            <Grid size={{ xs: 12, sm: 6, md: 3 }} >
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <TextField
                 select
                 fullWidth
@@ -198,8 +227,7 @@ export default function ExamsPage() {
               </TextField>
             </Grid>
 
-
-            <Grid size={{ xs: 12, sm: 6, md: 3 }} >
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Autocomplete
                 fullWidth
                 options={availableCourses}
@@ -207,11 +235,7 @@ export default function ExamsPage() {
                 onChange={(_, newValue) => setCourseFilter(newValue)}
                 disabled={isLoading}
                 renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    size="medium"
-                    label="Seleccionar curso"
-                  />
+                  <TextField {...params} size="medium" label="Seleccionar curso" />
                 )}
                 noOptionsText={
                   cycleFilter
@@ -221,7 +245,6 @@ export default function ExamsPage() {
               />
             </Grid>
 
-            {/* Botones de Búsqueda y Limpiar */}
             <Grid size={{ xs: 12, sm: 6, md: 2 }}>
               <Button
                 variant="contained"
@@ -230,15 +253,12 @@ export default function ExamsPage() {
                 disabled={isLoading}
                 fullWidth
                 size="large"
-                sx={{
-                  py: 1.5,
-                  fontWeight: 600,
-                  textTransform: "none",
-                }}
+                sx={{ py: 1.5, fontWeight: 600, textTransform: "none" }}
               >
                 {isLoading ? "Buscando..." : "Buscar"}
               </Button>
             </Grid>
+
             <Grid size={{ xs: 12, sm: 6, md: 2 }}>
               <Button
                 variant="outlined"
@@ -247,17 +267,13 @@ export default function ExamsPage() {
                 disabled={isLoading}
                 fullWidth
                 size="large"
-                sx={{
-                  py: 1.5,
-                  fontWeight: 600,
-                  textTransform: "none",
-                }}
+                sx={{ py: 1.5, fontWeight: 600, textTransform: "none" }}
               >
                 Limpiar
               </Button>
             </Grid>
 
-            <Grid size={{ xs: 12, md: 2 }} >
+            <Grid size={{ xs: 12, md: 2 }}>
               <Box display="flex" justifyContent={{ xs: "center", md: "flex-end" }}>
                 <ToggleButtonGroup
                   exclusive
@@ -290,24 +306,49 @@ export default function ExamsPage() {
               </Button>
             </Stack>
           )}
+
+          {/* ✅ NUEVO: Mostrar info de paginación */}
+          {filteredExams.length > 0 && (
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+              Mostrando {(currentPage - 1) * EXAMS_PER_PAGE + 1} -{" "}
+              {Math.min(currentPage * EXAMS_PER_PAGE, filteredExams.length)} de{" "}
+              {filteredExams.length} exámenes
+            </Typography>
+          )}
         </CardContent>
       </Card>
 
-      {viewMode === "table" && filteredExams.length > 0 && (
+      {/* ✅ CAMBIO: Usar paginatedExams en lugar de filteredExams */}
+      {viewMode === "table" && paginatedExams.length > 0 && (
         <TableView
-          filteredExams={filteredExams}
+          filteredExams={paginatedExams}
           selectedExams={selectedExams}
           toggleExam={toggleExam}
           toggleAll={toggleAll}
         />
       )}
 
-      {viewMode === "grid" && filteredExams.length > 0 && (
+      {viewMode === "grid" && paginatedExams.length > 0 && (
         <GridView
-          filteredExams={filteredExams}
+          filteredExams={paginatedExams}
           selectedExams={selectedExams}
           toggleExam={toggleExam}
         />
+      )}
+
+      {/* ✅ NUEVO: Paginación */}
+      {filteredExams.length > EXAMS_PER_PAGE && (
+        <Box display="flex" justifyContent="center" mt={4}>
+          <Pagination
+            count={totalPages}
+            page={currentPage}
+            onChange={handlePageChange}
+            color="primary"
+            size="large"
+            showFirstButton
+            showLastButton
+          />
+        </Box>
       )}
 
       {filteredExams.length === 0 && !isLoading && !searchError && (
@@ -411,73 +452,68 @@ function GridView({
 }) {
   const navigate = useNavigate();
   return (
-    <>
-      <Grid container spacing={3}>
-        {filteredExams.map((exam) => {
-          return (
-            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={exam.id} sx={{ display: "flex" }}>
-              <Card
-                sx={{
-                  position: "relative",
-                  border: selectedExams.includes(exam.id) ? "2px solid" : undefined,
-                  borderColor: "primary.main",
-                  display: "flex",
-                  flexDirection: "column",
-                }}
-              >
-                <Checkbox
-                  checked={selectedExams.includes(exam.id)}
-                  onChange={() => toggleExam(exam.id)}
-                  sx={{ position: "absolute", top: 8, left: 8 }}
-                />
+    <Grid container spacing={3}>
+      {filteredExams.map((exam) => {
+        return (
+          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={exam.id} sx={{ display: "flex" }}>
+            <Card
+              sx={{
+                position: "relative",
+                border: selectedExams.includes(exam.id) ? "2px solid" : undefined,
+                borderColor: "primary.main",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              <Checkbox
+                checked={selectedExams.includes(exam.id)}
+                onChange={() => toggleExam(exam.id)}
+                sx={{ position: "absolute", top: 8, left: 8 }}
+              />
 
-                <CardContent sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
-                  <Stack spacing={1}>
-                    <Chip label={exam.course} size="small" />
-                    <Typography variant="h6">{exam.title}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {exam.schoolTerm} - {exam.unit} {exam.section ? `- ${exam.section}` : ""}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      Profesor: {exam.teacher}
-                    </Typography>
-                    <Typography variant="caption">
-                      {exam.uploadDate
-                        ? new Date(exam.uploadDate).toLocaleDateString()
-                        : ""}
-                    </Typography>
+              <CardContent sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
+                <Stack spacing={1}>
+                  <Chip label={exam.course} size="small" />
+                  <Typography variant="h6">{exam.title}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {exam.schoolTerm} - {exam.unit} {exam.section ? `- ${exam.section}` : ""}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Profesor: {exam.teacher}
+                  </Typography>
+                  <Typography variant="caption">
+                    {exam.uploadDate
+                      ? new Date(exam.uploadDate).toLocaleDateString()
+                      : ""}
+                  </Typography>
+                </Stack>
+
+                <Box display="flex" alignItems="center" mt="auto">
+                  <Stack direction="row" spacing={1}>
+                    <Button size="small" variant="contained">
+                      Descargar
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="error"
+                      onClick={() => navigate(`/report/${exam.id}`)}
+                    >
+                      Reportar
+                    </Button>
                   </Stack>
-
-                  <Box display="flex" alignItems="center" mt="auto">
-                    <Stack direction="row" spacing={1}>
-                      <Button size="small" variant="contained">
-                        Descargar
-                      </Button>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        color="error"
-                        onClick={() => navigate(`/report/${exam.id}`)}
-                      >
-                        Reportar
-                      </Button>
-                    </Stack>
-                  </Box>
-                  <Box sx={{ my: 1 }}>
-                    <RatingBadge summary={exam.ratingsSummary} />
-                  </Box>
-                  <Button
-                    onClick={() => navigate(`/exam/${exam.id}`)}
-                  >
-                    Ver Detalles
-                  </Button>
-                </CardContent>
-              </Card>
-            </Grid>
-
-          );
-        })}
-      </Grid>
-    </>
+                </Box>
+                <Box sx={{ my: 1 }}>
+                  <RatingBadge summary={exam.ratingsSummary} />
+                </Box>
+                <Button onClick={() => navigate(`/exam/${exam.id}`)}>
+                  Ver Detalles
+                </Button>
+              </CardContent>
+            </Card>
+          </Grid>
+        );
+      })}
+    </Grid>
   );
 }
