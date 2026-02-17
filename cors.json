@@ -1,0 +1,17 @@
+[
+    {
+        "origin": [
+            "http://localhost:5173",
+            "https://exam-bank-3b696.web.app",
+            "https://exam-bank-3b696.firebaseapp.com"
+        ],
+        "method": [
+            "GET"
+        ],
+        "maxAgeSeconds": 3600,
+        "responseHeader": [
+            "Content-Type",
+            "Content-Disposition"
+        ]
+    }
+]

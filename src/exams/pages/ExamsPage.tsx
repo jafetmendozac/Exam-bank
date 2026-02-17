@@ -21,6 +21,8 @@ import {
   Autocomplete,
   TextField,
   Pagination,
+  Snackbar,
+  CircularProgress,
 } from "@mui/material";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -30,6 +32,10 @@ import Header from "../components/Header";
 import { getAllExams, type Exam as ServiceExam } from "../services/exams.service";
 import { getCourses } from "../services/courses.service";
 import RatingBadge from "@/exams/components/RatingBadge";
+import { getStorage, ref, getDownloadURL } from "firebase/storage";
+import { doc, updateDoc, increment, addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { db } from "@/app/firebase";
+import { useAuth } from "@/auth/context/useAuth";
 
 // Ciclos romanos del I al X
 const CYCLES = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
@@ -38,6 +44,9 @@ const CYCLES = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
 const EXAMS_PER_PAGE = 20;
 
 export default function ExamsPage() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
   const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
   const [selectedExams, setSelectedExams] = useState<string[]>([]);
 
@@ -57,6 +66,14 @@ export default function ExamsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [paginatedExams, setPaginatedExams] = useState<ServiceExam[]>([]);
+
+  // ✅ NUEVO: Estado de descarga
+  const [downloading, setDownloading] = useState(false);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success" as "success" | "error" | "info",
+  });
 
   // Cargar cursos y exámenes iniciales
   useEffect(() => {
@@ -99,8 +116,6 @@ export default function ExamsPage() {
   useEffect(() => {
     const total = Math.ceil(filteredExams.length / EXAMS_PER_PAGE);
     setTotalPages(total);
-
-    // Resetear a página 1 cuando cambian los filtros
     setCurrentPage(1);
   }, [filteredExams]);
 
@@ -135,6 +150,123 @@ export default function ExamsPage() {
     filterCoursesByCycle();
   }, [cycleFilter, allCourses, courseFilter]);
 
+  // ✅ FUNCIONES DE DESCARGA
+  const getFirebaseUrl = async (exam: ServiceExam): Promise<string> => {
+    if (exam.filePath) {
+      const storage = getStorage();
+      const fileRef = ref(storage, exam.filePath);
+      return await getDownloadURL(fileRef);
+    }
+    return exam.fileUrl || "";
+  };
+
+  const registerDownload = async (exam: ServiceExam) => {
+    if (!user) return;
+    try {
+      await addDoc(collection(db, "downloadLogs"), {
+        userId: user.uid,
+        userEmail: user.email,
+        examId: exam.id,
+        examTitle: exam.title,
+        course: exam.course,
+        timestamp: serverTimestamp(),
+      });
+      await updateDoc(doc(db, "exams", exam.id), {
+        downloads: increment(1),
+      });
+    } catch (error) {
+      console.error("Error al registrar descarga:", error);
+    }
+  };
+
+  const handleDownload = async (exam: ServiceExam) => {
+    if (!user) {
+      setSnackbar({ open: true, message: "Inicia sesión para descargar", severity: "error" });
+      return;
+    }
+
+    setDownloading(true);
+    try {
+      const url = await getFirebaseUrl(exam);
+      const response = await fetch(url);
+      const blob = await response.blob();
+
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = exam.fileName || `${exam.title}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+
+      await registerDownload(exam);
+
+      setSnackbar({ open: true, message: "✅ Descarga completada", severity: "success" });
+    } catch (error) {
+      console.error("Error al descargar:", error);
+      try {
+        const url = await getFirebaseUrl(exam);
+        window.open(url, "_blank");
+        await registerDownload(exam);
+        setSnackbar({ open: true, message: "Archivo abierto en nueva pestaña", severity: "info" });
+      } catch {
+        setSnackbar({ open: true, message: "Error al descargar", severity: "error" });
+      }
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const handleBulkDownload = async () => {
+    if (!user) {
+      setSnackbar({ open: true, message: "Inicia sesión para descargar", severity: "error" });
+      return;
+    }
+
+    if (selectedExams.length === 0) return;
+
+    setDownloading(true);
+    let successCount = 0;
+
+    for (const examId of selectedExams) {
+      const exam = filteredExams.find((e) => e.id === examId);
+      if (!exam) continue;
+
+      try {
+        // Descarga real con blob (igual que individual)
+        const url = await getFirebaseUrl(exam);
+        const response = await fetch(url);
+        const blob = await response.blob();
+
+        const blobUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = blobUrl;
+        link.download = exam.fileName || `${exam.title}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(blobUrl);
+
+        await registerDownload(exam);
+        successCount++;
+
+        // Delay entre descargas (navegadores limitan descargas simultáneas)
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      } catch (error) {
+        console.error(`Error al descargar ${exam.title}:`, error);
+      }
+    }
+
+    setDownloading(false);
+    setSnackbar({
+      open: true,
+      message: `✅ ${successCount} de ${selectedExams.length} archivos descargados`,
+      severity: "success",
+    });
+    setSelectedExams([]);
+  };
+
   // Función para aplicar filtros
   const handleSearch = async () => {
     if (!cycleFilter && !courseFilter) {
@@ -151,7 +283,7 @@ export default function ExamsPage() {
         course?: string;
         status?: "approved";
       } = {
-        status: "approved", // ✅ Siempre filtrar por aprobados
+        status: "approved",
       };
 
       if (cycleFilter) filters.cycle = cycleFilter;
@@ -179,7 +311,7 @@ export default function ExamsPage() {
     setSearchError("");
     setFilteredExams(allExams);
     setSelectedExams([]);
-    setCurrentPage(1); // ✅ Resetear página
+    setCurrentPage(1);
   };
 
   const toggleExam = (id: string) => {
@@ -189,7 +321,6 @@ export default function ExamsPage() {
   };
 
   const toggleAll = () => {
-    // ✅ Cambiar: Seleccionar solo los de la página actual
     if (selectedExams.length === paginatedExams.length) {
       setSelectedExams([]);
     } else {
@@ -197,7 +328,6 @@ export default function ExamsPage() {
     }
   };
 
-  // ✅ NUEVO: Manejar cambio de página
   const handlePageChange = (_: React.ChangeEvent<unknown>, page: number) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -296,18 +426,24 @@ export default function ExamsPage() {
           )}
 
           {selectedExams.length > 0 && (
-            <Stack direction="row" spacing={2} mt={3}>
+            <Stack direction="row" spacing={2} mt={3} alignItems="center">
               <Typography variant="body2">
                 {selectedExams.length} seleccionado(s)
               </Typography>
-              <Button variant="contained">Descargar</Button>
+              <Button
+                variant="contained"
+                onClick={handleBulkDownload}
+                disabled={downloading}
+                startIcon={downloading ? <CircularProgress size={16} color="inherit" /> : undefined}
+              >
+                {downloading ? "Descargando..." : "Descargar"}
+              </Button>
               <Button variant="outlined" onClick={() => setSelectedExams([])}>
                 Limpiar
               </Button>
             </Stack>
           )}
 
-          {/* ✅ NUEVO: Mostrar info de paginación */}
           {filteredExams.length > 0 && (
             <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
               Mostrando {(currentPage - 1) * EXAMS_PER_PAGE + 1} -{" "}
@@ -318,7 +454,6 @@ export default function ExamsPage() {
         </CardContent>
       </Card>
 
-      {/* ✅ CAMBIO: Usar paginatedExams en lugar de filteredExams */}
       {viewMode === "table" && paginatedExams.length > 0 && (
         <TableView
           filteredExams={paginatedExams}
@@ -333,10 +468,11 @@ export default function ExamsPage() {
           filteredExams={paginatedExams}
           selectedExams={selectedExams}
           toggleExam={toggleExam}
+          handleDownload={handleDownload}
+          downloading={downloading}
         />
       )}
 
-      {/* ✅ NUEVO: Paginación */}
       {filteredExams.length > EXAMS_PER_PAGE && (
         <Box display="flex" justifyContent="center" mt={4}>
           <Pagination
@@ -359,6 +495,23 @@ export default function ExamsPage() {
           </Typography>
         </Box>
       )}
+
+      {/* Snackbar */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ borderRadius: 2 }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 }
@@ -445,10 +598,14 @@ function GridView({
   filteredExams,
   selectedExams,
   toggleExam,
+  handleDownload,
+  downloading,
 }: {
   filteredExams: ServiceExam[];
   selectedExams: string[];
   toggleExam: (id: string) => void;
+  handleDownload: (exam: ServiceExam) => void;
+  downloading: boolean;
 }) {
   const navigate = useNavigate();
   return (
@@ -490,8 +647,13 @@ function GridView({
 
                 <Box display="flex" alignItems="center" mt="auto">
                   <Stack direction="row" spacing={1}>
-                    <Button size="small" variant="contained">
-                      Descargar
+                    <Button
+                      size="small"
+                      variant="contained"
+                      onClick={() => handleDownload(exam)}
+                      disabled={downloading}
+                    >
+                      {downloading ? "..." : "Descargar"}
                     </Button>
                     <Button
                       size="small"

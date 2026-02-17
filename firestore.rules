@@ -138,7 +138,7 @@ service cloud.firestore {
        ====================== */
     match /downloadLogs/{logId} {
       // Crear log cuando alguien descarga
-      allow create: if isAuthenticated();
+      allow create: if request.auth != null
       
       // Admin puede leer todos (para stats)
       allow read: if isAdmin();
